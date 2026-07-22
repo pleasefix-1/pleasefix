@@ -3,6 +3,11 @@
   "dockerComposeFile": ["../compose.yaml", "../compose.override.yaml"],
   "service": "app",
   "workspaceFolder": "/app",
+  // The app image is the production image and stays git-free; features
+  // are layered onto the dev container only.
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
   "forwardPorts": [8000],
   "portsAttributes": {
     "8000": { "label": "PleaseFix app" }
