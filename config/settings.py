@@ -9,7 +9,12 @@ same image, different env. See docs/DESIGN.md.
 from pathlib import Path
 from typing import Any
 
+import django_stubs_ext
 import environ
+
+# Make django-stubs' class-level generics (e.g. GISModelAdmin[Issue])
+# valid at runtime, not just for mypy.
+django_stubs_ext.monkeypatch()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -122,6 +127,9 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = env("TIME_ZONE")
 USE_I18N = True
 USE_TZ = True
+
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"

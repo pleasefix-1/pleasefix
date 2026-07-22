@@ -17,6 +17,8 @@ dependencies = [
     "django-allauth>=65",
     "django-storages[s3]>=1.14",
     "django-htmx>=1.19",
+    "pillow>=12.3.0",
+    "django-stubs-ext>=6.0.7",
 ]
 
 [dependency-groups]
