@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PleaseFix\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-22 08:49+0800\n"
+"POT-Creation-Date: 2026-07-22 09:25+0800\n"
 "PO-Revision-Date: 2026-07-22 08:45+0800\n"
 "Last-Translator: PleaseFix Maintainers <pleasefix-1@users.noreply.github.com>\n"
 "Language-Team: Bahasa Melayu\n"
@@ -35,55 +35,71 @@ msgstr "Apa yang rosak, sejak bila, dan bagaimana ia menjejaskan orang ramai"
 msgid "Latitude"
 msgstr "Latitud"
 
-#: core/forms.py:26
+#: core/forms.py:29
 msgid "Longitude"
 msgstr "Longitud"
 
-#: core/forms.py:28
+#: core/forms.py:34
 msgid "Photo"
 msgstr "Gambar"
 
-#: core/forms.py:30
+#: core/forms.py:36
 msgid "Your name (optional, shown publicly)"
 msgstr "Nama anda (tidak wajib, dipaparkan secara terbuka)"
 
-#: core/models.py:15
+#: core/forms.py:45
+msgid "Link to import"
+msgstr "Pautan untuk diimport"
+
+#: core/models.py:27
 msgid "Open"
 msgstr "Terbuka"
 
-#: core/models.py:16
+#: core/models.py:28
 msgid "Fixed"
 msgstr "Selesai"
 
-#: core/models.py:17
+#: core/models.py:29
 msgid "Closed"
 msgstr "Ditutup"
 
-#: core/models.py:19
+#: core/models.py:34
 msgid "title"
 msgstr "tajuk"
 
-#: core/models.py:20
+#: core/models.py:35
 msgid "description"
 msgstr "keterangan"
 
-#: core/models.py:21
+#: core/models.py:36
+msgid "source link"
+msgstr "pautan sumber"
+
+#: core/models.py:37
 msgid "location"
 msgstr "lokasi"
 
-#: core/models.py:23
+#: core/models.py:39
 msgid "status"
 msgstr "status"
 
-#: core/models.py:25
+#: core/models.py:41
 msgid "reporter name"
 msgstr "nama pelapor"
 
-#: core/models.py:49
+#: core/models.py:70
 msgid "photo"
 msgstr "gambar"
 
-#: templates/about.html:3 templates/base.html:59
+#: core/views.py:64
+#, python-format
+msgid ""
+"\n"
+"\n"
+"(Imported from a post by %(author)s)"
+msgstr "\n\n(Diimport daripada kiriman oleh %(author)s)"
+
+#: templates/about.html:3 templates/base.html:60
 msgid "About"
 msgstr "Perihal"
 
@@ -362,7 +378,7 @@ msgstr "Siapa bertanggungjawab atas apa selalunya menjadi pengetahuan lisan sema
 msgid "How it works"
 msgstr "Cara ia berfungsi"
 
-#: templates/about.html:207 templates/base.html:57
+#: templates/about.html:207 templates/base.html:58
 msgid "Report"
 msgstr "Lapor"
 
@@ -413,19 +429,19 @@ msgstr "Teroka API"
 msgid "Source & contributing"
 msgstr "Kod sumber & penyumbangan"
 
-#: templates/base.html:58
+#: templates/base.html:59
 msgid "Issues"
 msgstr "Isu"
 
-#: templates/base.html:60
+#: templates/base.html:61
 msgid "API"
 msgstr "API"
 
-#: templates/base.html:73
+#: templates/base.html:74
 msgid "An independent, open civic platform."
 msgstr "Platform sivik bebas dan terbuka."
 
-#: templates/base.html:74
+#: templates/base.html:75
 msgid "Source code"
 msgstr "Kod sumber"
 
@@ -458,14 +474,10 @@ msgid "Browse issues"
 msgstr "Semak isu"
 
 #: templates/home.html:37
-#, fuzzy
-#| msgid ""
-#| "See what's already reported around you,\n"
-#| "    subscribe to updates, and add your own evidence."
 msgid ""
 "See what's already reported, check its\n"
 "    status, and follow up."
-msgstr "Lihat apa yang telah dilaporkan di sekitar anda, langgan kemas kini, dan tambah bukti anda sendiri."
+msgstr "Lihat apa yang telah dilaporkan, semak statusnya, dan buat susulan."
 
 #: templates/home.html:41
 msgid "How PleaseFix works"
@@ -487,23 +499,39 @@ msgid ""
 "    designed for third-party apps and dashboards."
 msgstr "Sumber terbuka, Apache-2.0, dengan API awam yang direka untuk aplikasi dan papan pemuka pihak ketiga."
 
-#: templates/issues/detail.html:16
+#: templates/issues/detail.html:38
 msgid "All issues"
 msgstr "Semua isu"
 
-#: templates/issues/detail.html:20
+#: templates/issues/detail.html:43
 #, python-format
 msgid "reported %(date)s"
 msgstr "dilaporkan %(date)s"
 
-#: templates/issues/detail.html:22
+#: templates/issues/detail.html:45
 #, python-format
 msgid "by %(name)s"
 msgstr "oleh %(name)s"
 
-#: templates/issues/detail.html:36
+#: templates/issues/detail.html:48
+msgid "original post"
+msgstr "kiriman asal"
+
+#: templates/issues/detail.html:62
 msgid "view on OpenStreetMap"
 msgstr "lihat di OpenStreetMap"
+
+#: templates/issues/detail.html:65
+msgid "Share:"
+msgstr "Kongsi:"
+
+#: templates/issues/detail.html:71
+msgid "Copied!"
+msgstr "Disalin!"
+
+#: templates/issues/detail.html:71
+msgid "Copy link"
+msgstr "Salin pautan"
 
 #: templates/issues/list.html:24
 msgid "+ Report an issue"
@@ -513,31 +541,67 @@ msgstr "+ Laporkan isu"
 msgid "No issues reported yet — be the first."
 msgstr "Belum ada isu dilaporkan — jadilah yang pertama."
 
+#: templates/issues/report_import.html:3 templates/issues/report_import.html:18
+msgid "Import from a link"
+msgstr "Import daripada pautan"
+
+#: templates/issues/report_import.html:20
+msgid ""
+"Seen a community problem on Reddit, X, Facebook, or\n"
+"    Threads? Paste the link — we'll pull in whatever the post shares\n"
+"    publicly (title, text, photo), and you add the location and\n"
+"    confirm."
+msgstr "Ternampak masalah komuniti di Reddit, X, Facebook, atau Threads? Tampal pautannya — kami akan tarik apa sahaja yang dikongsi kiriman itu secara terbuka (tajuk, teks, gambar), dan anda tambah lokasi serta sahkan."
+
+#: templates/issues/report_import.html:27
+msgid "Continue to the prefilled report form →"
+msgstr "Teruskan ke borang laporan yang telah diisi →"
+
+#: templates/issues/report_import.html:32
+msgid "Fetch details"
+msgstr "Dapatkan butiran"
+
+#: templates/issues/report_import.html:34
+msgid "Or fill in the report form directly"
+msgstr "Atau isi borang laporan secara terus"
+
 #: templates/issues/report_new.html:26
 msgid ""
 "No account needed. The report is public from the\n"
 "    moment you submit it."
 msgstr "Tiada akaun diperlukan. Laporan ini terbuka kepada umum sebaik sahaja anda menghantarnya."
 
-#: templates/issues/report_new.html:38
+#: templates/issues/report_new.html:28
+msgid "Import from a link instead (Reddit, X, Facebook…)"
+msgstr "Atau import daripada pautan (Reddit, X, Facebook…)"
+
+#: templates/issues/report_new.html:32
+#, python-format
+msgid ""
+"Prefilled from\n"
+"      <a href=\"%(url)s\" rel=\"noopener\">%(url)s</a> — review, add the\n"
+"      location, then submit."
+msgstr "Telah diisi daripada <a href=\"%(url)s\" rel=\"noopener\">%(url)s</a> — semak, tambah lokasi, kemudian hantar."
+
+#: templates/issues/report_new.html:47
 msgid "Where is it?"
 msgstr "Di manakah lokasinya?"
 
-#: templates/issues/report_new.html:44
+#: templates/issues/report_new.html:53
 msgid "Use my current location"
 msgstr "Guna lokasi semasa saya"
 
-#: templates/issues/report_new.html:46
+#: templates/issues/report_new.html:55
 msgid ""
 "Tip: in Google Maps, long-press a\n"
 "      spot and copy the two numbers."
 msgstr "Petua: dalam Google Maps, tekan lama pada satu titik dan salin dua nombor itu."
 
-#: templates/issues/report_new.html:56
+#: templates/issues/report_new.html:65
 msgid "Submit report"
 msgstr "Hantar laporan"
 
-#: templates/issues/report_new.html:73
+#: templates/issues/report_new.html:82
 msgid "Could not get your location"
 msgstr "Tidak dapat memperoleh lokasi anda"
 
