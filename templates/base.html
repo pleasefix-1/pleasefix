@@ -82,9 +82,9 @@
       <a href="{% url 'about' %}">{% translate "About" %}</a>
       <a href="/api/v1/docs">{% translate "API" %}</a>
       {% if user.is_authenticated %}
-        <a href="/accounts/logout/">{% translate "Log out" %}</a>
+        <a href="{% url 'account_logout' %}">{% translate "Log out" %}</a>
       {% else %}
-        <a href="/accounts/login/">{% translate "Log in" %}</a>
+        <a href="{% url 'account_login' %}">{% translate "Log in" %}</a>
       {% endif %}
     </nav>
   </header>

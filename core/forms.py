@@ -1,5 +1,19 @@
+from typing import Any
+
 from django import forms
+from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import UploadedFile
 from django.utils.translation import gettext_lazy as _
+
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
+def validate_photo_size(photo: UploadedFile | None) -> UploadedFile | None:
+    """Cap uploaded photo size — Pillow validates it's an image, but an
+    ImageField has no size bound, so a huge upload could OOM the worker."""
+    if photo is not None and photo.size is not None and photo.size > MAX_UPLOAD_BYTES:
+        raise ValidationError(_("Photo is too large (max 10 MB)."))
+    return photo
 
 
 class HoneypotMixin(forms.Form):
@@ -14,6 +28,9 @@ class HoneypotMixin(forms.Form):
     @property
     def is_spam(self) -> bool:
         return bool(self.cleaned_data.get("website"))
+
+    def clean_photo(self) -> Any:
+        return validate_photo_size(self.cleaned_data.get("photo"))
 
 
 class IssueForm(HoneypotMixin, forms.Form):

@@ -1,26 +1,24 @@
 from urllib.parse import quote
 
 from django.contrib import messages
-from django.contrib.gis.geos import Point
+from django.contrib.auth.views import redirect_to_login
 from django.core.files.base import ContentFile
 from django.db import IntegrityError, connection, transaction
+from django.db.models import Prefetch
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.translation import gettext as _
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 
 from core import abuse, importers
 from core.forms import ClaimForm, ImportForm, IssueForm, UpdateForm
-from core.models import (
-    Flag,
-    Issue,
-    IssuePhoto,
-    IssueUpdate,
-    generate_claim_token,
-    hash_claim_token,
-)
+from core.models import Flag, Issue, IssuePhoto, IssueUpdate
 
+# Lazy so it renders in the viewer's language per-request, not once at import.
 THROTTLE_MESSAGE = _("Too many submissions from your connection — please try again later.")
+
+PUBLIC_UPDATES = Prefetch("updates", queryset=IssueUpdate.objects.public())
 
 
 def home(request: HttpRequest) -> HttpResponse:
@@ -38,20 +36,17 @@ def report_new(request: HttpRequest) -> HttpResponse:
         if form.is_valid():
             if form.is_spam:
                 return redirect("issue_list")  # honeypot: pretend success
-            if abuse.throttled(request, "report", limit=5):
+            if abuse.throttled(request, "report", abuse.throttle_limit("report")):
                 form.add_error(None, THROTTLE_MESSAGE)
                 return render(request, "issues/report_new.html", {"form": form})
-            claim_token = generate_claim_token()
-            issue = Issue.objects.create(
+            issue, claim_token = Issue.objects.create_report(
                 title=form.cleaned_data["title"],
                 description=form.cleaned_data["description"],
-                location=Point(
-                    form.cleaned_data["longitude"], form.cleaned_data["latitude"], srid=4326
-                ),
+                longitude=form.cleaned_data["longitude"],
+                latitude=form.cleaned_data["latitude"],
                 reporter_name=form.cleaned_data["reporter_name"],
                 source_url=form.cleaned_data["source_url"],
                 ip_hash=abuse.ip_hash(request),
-                claim_token_hash=hash_claim_token(claim_token),
                 owner=request.user if request.user.is_authenticated else None,
             )
             if form.cleaned_data["photo"]:
@@ -77,7 +72,7 @@ def report_import(request: HttpRequest) -> HttpResponse:
         form = ImportForm(request.POST)
         if form.is_valid():
             try:
-                if abuse.throttled(request, "import", limit=10):
+                if abuse.throttled(request, "import", abuse.throttle_limit("import")):
                     raise importers.ImportError_(str(THROTTLE_MESSAGE))
                 candidate = importers.fetch_candidate(form.cleaned_data["url"])
             except importers.ImportError_ as exc:
@@ -106,12 +101,12 @@ def report_import(request: HttpRequest) -> HttpResponse:
 
 
 def issue_list(request: HttpRequest) -> HttpResponse:
-    issues = Issue.public().prefetch_related("photos")[:100]
+    issues = Issue.objects.public().prefetch_related("photos")[:100]
     return render(request, "issues/list.html", {"issues": issues})
 
 
 def _detail_context(request: HttpRequest, issue: Issue, form: UpdateForm) -> dict[str, object]:
-    share_url = request.build_absolute_uri(f"/i/{issue.public_id}")
+    share_url = request.build_absolute_uri(reverse("issue_shortlink", args=[issue.public_id]))
     share_text = f"{issue.title} ({issue.reference_code})"
     is_owner = request.user.is_authenticated and issue.owner_id == request.user.pk
     return {
@@ -130,19 +125,21 @@ def _detail_context(request: HttpRequest, issue: Issue, form: UpdateForm) -> dic
 
 
 def issue_detail(request: HttpRequest, public_id: str) -> HttpResponse:
-    issue = get_object_or_404(Issue.public().prefetch_related("photos"), public_id=public_id)
+    issue = get_object_or_404(
+        Issue.objects.public().prefetch_related("photos", PUBLIC_UPDATES), public_id=public_id
+    )
     return render(request, "issues/detail.html", _detail_context(request, issue, UpdateForm()))
 
 
 @require_POST
 def update_new(request: HttpRequest, public_id: str) -> HttpResponse:
     """Follow-up by anyone — no login (see docs/ABUSE.md for the guards)."""
-    issue = get_object_or_404(Issue.public(), public_id=public_id)
+    issue = get_object_or_404(Issue.objects.public(), public_id=public_id)
     form = UpdateForm(request.POST, request.FILES)
     if form.is_valid():
         if form.is_spam:
             return redirect(issue)  # honeypot: pretend success
-        if abuse.throttled(request, "update", limit=10):
+        if abuse.throttled(request, "update", abuse.throttle_limit("update")):
             messages.error(request, THROTTLE_MESSAGE)
             return redirect(issue)
         by_reporter = bool(request.user.is_authenticated and issue.owner_id == request.user.pk)
@@ -170,9 +167,12 @@ def update_new(request: HttpRequest, public_id: str) -> HttpResponse:
 def issue_claim(request: HttpRequest, public_id: str) -> HttpResponse:
     """Attach an anonymous report to the logged-in account, proven by the
     reporter secret. Claimed reports earn a higher flag threshold."""
-    issue = get_object_or_404(Issue.public(), public_id=public_id)
+    issue = get_object_or_404(Issue.objects.public(), public_id=public_id)
     if not request.user.is_authenticated:
-        return redirect(f"/accounts/login/?next={issue.get_absolute_url()}")
+        return redirect_to_login(issue.get_absolute_url())
+    if abuse.throttled(request, "claim", abuse.throttle_limit("claim")):
+        messages.error(request, THROTTLE_MESSAGE)
+        return redirect(issue)
     form = ClaimForm(request.POST)
     if form.is_valid() and not issue.is_claimed and issue.check_claim(form.cleaned_data["secret"]):
         issue.owner = request.user
@@ -183,48 +183,47 @@ def issue_claim(request: HttpRequest, public_id: str) -> HttpResponse:
     return redirect(issue)
 
 
-def _flag(request: HttpRequest, **target: object) -> None:
-    if abuse.throttled(request, "flag", limit=30):
+def _flag(
+    request: HttpRequest, *, issue: Issue | None = None, update: IssueUpdate | None = None
+) -> bool:
+    """Record a flag (deduped per submitter). Returns False if throttled."""
+    if abuse.throttled(request, "flag", abuse.throttle_limit("flag")):
         messages.error(request, THROTTLE_MESSAGE)
-        return
+        return False
     try:
         with transaction.atomic():  # savepoint: a dup must not poison the request
-            Flag.objects.create(ip_hash=abuse.ip_hash(request), **target)
+            Flag.objects.create(ip_hash=abuse.ip_hash(request), issue=issue, update=update)
     except IntegrityError:
         pass  # same person flagging twice — counted once
     messages.success(request, _("Thanks — this has been reported for review by moderators."))
+    return True
 
 
 @require_POST
 def issue_flag(request: HttpRequest, public_id: str) -> HttpResponse:
-    issue = get_object_or_404(Issue.public(), public_id=public_id)
-    _flag(request, issue=issue)
-    if issue.flags.count() >= issue.flag_threshold:
-        issue.is_hidden = True
-        issue.save(update_fields=["is_hidden"])
+    issue = get_object_or_404(Issue.objects.public(), public_id=public_id)
+    if _flag(request, issue=issue) and issue.maybe_auto_hide():
         return redirect("issue_list")
     return redirect(issue)
 
 
 @require_POST
 def update_flag(request: HttpRequest, update_id: int) -> HttpResponse:
-    update = get_object_or_404(IssueUpdate.objects.filter(is_hidden=False), pk=update_id)
-    threshold = Flag.CLAIMED_HIDE_THRESHOLD if update.by_reporter else Flag.AUTO_HIDE_THRESHOLD
+    update = get_object_or_404(
+        IssueUpdate.objects.filter(is_hidden=False).select_related("issue"), pk=update_id
+    )
     _flag(request, update=update)
-    if update.flags.count() >= threshold:
-        update.is_hidden = True
-        update.save(update_fields=["is_hidden"])
+    update.maybe_auto_hide()
     return redirect(update.issue)
 
 
 def issue_shortlink(request: HttpRequest, public_id: str) -> HttpResponse:
     """Short share URL: /i/<public_id> → the issue page."""
-    issue = get_object_or_404(Issue.public(), public_id=public_id)
+    issue = get_object_or_404(Issue.objects.public(), public_id=public_id)
     return redirect(issue, permanent=False)
 
 
 def healthz(request: HttpRequest) -> JsonResponse:
     """Liveness/readiness probe: process up + database reachable."""
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT 1")
+    connection.ensure_connection()
     return JsonResponse({"status": "ok"})

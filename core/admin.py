@@ -1,5 +1,8 @@
 from django.contrib import admin
 from django.contrib.gis.admin import GISModelAdmin
+from django.db.models import QuerySet
+from django.http import HttpRequest
+from django.utils.translation import gettext_lazy as _
 
 from core.models import Flag, Issue, IssuePhoto, IssueUpdate
 
@@ -12,7 +15,7 @@ class IssuePhotoInline(admin.TabularInline[IssuePhoto, Issue]):
 class IssueUpdateInline(admin.TabularInline[IssueUpdate, Issue]):
     model = IssueUpdate
     extra = 0
-    fields = ["text", "author_name", "is_hidden", "created_at"]
+    fields = ["text", "author_name", "by_reporter", "is_hidden", "created_at"]
     readonly_fields = ["created_at"]
 
 
@@ -24,18 +27,20 @@ class IssueAdmin(GISModelAdmin[Issue]):
     inlines = [IssuePhotoInline, IssueUpdateInline]
     actions = ["unhide"]
 
-    @admin.action(description="Unhide selected issues (dismiss flags)")
-    def unhide(self, request: object, queryset: object) -> None:
-        queryset.update(is_hidden=False)  # type: ignore[attr-defined]
+    @admin.action(description=_("Unhide selected issues (dismiss flags)"))
+    def unhide(self, request: HttpRequest, queryset: QuerySet[Issue]) -> None:
+        queryset.update(is_hidden=False)
 
 
 @admin.register(IssueUpdate)
 class IssueUpdateAdmin(admin.ModelAdmin[IssueUpdate]):
-    list_display = ["issue", "author_name", "is_hidden", "created_at"]
-    list_filter = ["is_hidden"]
+    list_display = ["issue", "author_name", "by_reporter", "is_hidden", "created_at"]
+    list_filter = ["is_hidden", "by_reporter"]
+    list_select_related = ["issue"]
 
 
 @admin.register(Flag)
 class FlagAdmin(admin.ModelAdmin[Flag]):
     list_display = ["issue", "update", "created_at"]
+    list_select_related = ["issue", "update"]
     readonly_fields = ["issue", "update", "ip_hash", "created_at"]

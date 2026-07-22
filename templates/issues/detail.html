@@ -73,10 +73,11 @@
       verified follow-ups as the original reporter, or to claim this
       report into an account later.{% endblocktranslate %}
       {% if not user.is_authenticated %}
-        <a href="/accounts/signup/?next={{ issue.get_absolute_url }}">{% translate "Create an account" %}</a>
-        {% translate "or" %}
-        <a href="/accounts/login/?next={{ issue.get_absolute_url }}">{% translate "log in" %}</a>
-        {% translate "to keep track of your reports." %}
+        {% url 'account_signup' as signup_url %}
+        {% url 'account_login' as login_url %}
+        {% with issue_url=issue.get_absolute_url %}
+        {% blocktranslate %}<a href="{{ signup_url }}?next={{ issue_url }}">Create an account</a> or <a href="{{ login_url }}?next={{ issue_url }}">log in</a> to keep track of your reports.{% endblocktranslate %}
+        {% endwith %}
       {% endif %}</p>
     </div>
   {% endif %}
