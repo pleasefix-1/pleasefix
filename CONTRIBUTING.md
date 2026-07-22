@@ -49,6 +49,13 @@ and a hosted sandbox with seeded Malaysian data is planned so you never
 need Docker or PostGIS to build against the API. Community clients get
 listed in the registry — recognition is the currency.
 
+## Commit style
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+`type(scope): summary` — types in use: `feat`, `fix`, `docs`, `chore`,
+`refactor`, `test`, `ci`. Keep one logical change per commit; the body
+explains why, not what.
+
 ## License of contributions
 
 The project is Apache-2.0. By submitting a contribution you agree it is
