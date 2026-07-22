@@ -1,5 +1,7 @@
+import hashlib
 import secrets
 
+from django.conf import settings
 from django.contrib.gis.db import models as gis
 from django.db import models
 from django.urls import reverse
@@ -14,6 +16,19 @@ def generate_public_id() -> str:
     as the human reference code ("PF-k7xq2mv"). 31^7 ≈ 2.7e10 values, so
     random collisions are vanishingly rare; uniqueness is DB-enforced."""
     return "".join(secrets.choice(PUBLIC_ID_ALPHABET) for _ in range(7))
+
+
+def generate_claim_token() -> str:
+    """The reporter's secret, shown once at submission: proves 'I am the
+    original reporter' on follow-ups, and claims the report into an
+    account later (progressive identity — the report comes first)."""
+    return "".join(secrets.choice(PUBLIC_ID_ALPHABET) for _ in range(12))
+
+
+def hash_claim_token(raw: str) -> str:
+    """Only the salted hash is stored — a database leak must not leak
+    everyone's reporter secrets."""
+    return hashlib.sha256(f"{settings.SECRET_KEY}:claim:{raw.strip()}".encode()).hexdigest()
 
 
 class Issue(models.Model):
@@ -39,6 +54,18 @@ class Issue(models.Model):
         _("status"), max_length=10, choices=Status.choices, default=Status.OPEN
     )
     reporter_name = models.CharField(_("reporter name"), max_length=100, blank=True)
+    # Progressive identity: the salted hash of the reporter's secret
+    # (raw value shown once at submission), and — once claimed — the
+    # account that owns this report. Claimed content earns more trust
+    # (higher flag threshold; verified-reporter badge on follow-ups).
+    claim_token_hash = models.CharField(max_length=64, blank=True, editable=False)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="claimed_issues",
+    )
     # Moderation: content is hidden, never deleted (auditable, reversible).
     is_hidden = models.BooleanField(default=False)
     # Salted hash of the submitter's IP — abuse tracing without storing PII.
@@ -65,6 +92,20 @@ class Issue(models.Model):
         return f"PF-{self.public_id}"
 
     @property
+    def is_claimed(self) -> bool:
+        return self.owner_id is not None
+
+    @property
+    def flag_threshold(self) -> int:
+        """Claimed reports are harder to flag-bomb off the site."""
+        return Flag.CLAIMED_HIDE_THRESHOLD if self.is_claimed else Flag.AUTO_HIDE_THRESHOLD
+
+    def check_claim(self, raw_token: str) -> bool:
+        return bool(self.claim_token_hash) and secrets.compare_digest(
+            self.claim_token_hash, hash_claim_token(raw_token)
+        )
+
+    @property
     def latitude(self) -> float:
         return float(self.location.y)
 
@@ -83,6 +124,8 @@ class IssueUpdate(models.Model):
     issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name="updates")
     text = models.TextField(_("update"))
     author_name = models.CharField(_("name"), max_length=100, blank=True)
+    # Verified via the reporter secret or the owning account.
+    by_reporter = models.BooleanField(default=False)
     photo = models.ImageField(_("photo"), upload_to="updates/%Y/%m/", blank=True)
     is_hidden = models.BooleanField(default=False)
     ip_hash = models.CharField(max_length=64, blank=True, editable=False)
@@ -103,6 +146,7 @@ class Flag(models.Model):
     """
 
     AUTO_HIDE_THRESHOLD = 3
+    CLAIMED_HIDE_THRESHOLD = 5
 
     issue = models.ForeignKey(
         Issue, on_delete=models.CASCADE, related_name="flags", null=True, blank=True
