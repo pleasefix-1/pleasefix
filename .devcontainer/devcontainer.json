@@ -4,9 +4,12 @@
   "service": "app",
   "workspaceFolder": "/app",
   // The app image is the production image and stays git-free; features
-  // are layered onto the dev container only.
+  // are layered onto the dev container only. github-cli: `gh auth login`
+  // gives HTTPS push/pull without SSH keys in the container (VS Code
+  // only forwards an SSH agent if one is running on the host).
   "features": {
-    "ghcr.io/devcontainers/features/git:1": {}
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "forwardPorts": [8000],
   "portsAttributes": {

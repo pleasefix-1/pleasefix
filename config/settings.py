@@ -43,9 +43,7 @@ if DEBUG:
     # stale) .env says — VS Code's port forwarding opens the browser on
     # IPv6 localhost ([::1]), which older .env files don't list. Mirrors
     # Django's own DEBUG behaviour when ALLOWED_HOSTS is empty.
-    ALLOWED_HOSTS += [
-        h for h in ("localhost", "127.0.0.1", "[::1]") if h not in ALLOWED_HOSTS
-    ]
+    ALLOWED_HOSTS += [h for h in ("localhost", "127.0.0.1", "[::1]") if h not in ALLOWED_HOSTS]
 
 _INSECURE_KEY = "dev-only-insecure-key"  # noqa: S105
 SECRET_KEY = env("SECRET_KEY", default=_INSECURE_KEY)
