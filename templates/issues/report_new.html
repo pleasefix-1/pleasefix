@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Report an issue" %} — {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<style>
+  .report form { max-width: 34rem; }
+  .report p.help { color: var(--muted); font-size: .95rem; }
+  .field { margin: 1rem 0; }
+  .field label { display: block; font-weight: 600; margin-bottom: .25rem; }
+  .field input[type=text], .field input[type=number], .field textarea {
+    width: 100%; padding: .5rem .6rem; border: 1px solid var(--border);
+    border-radius: .4rem; background: var(--bg); color: var(--fg); font: inherit; }
+  .field .errorlist { color: var(--danger); list-style: none; padding: 0; margin: .25rem 0 0; }
+  .latlon { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+  .locbtn, .submit { padding: .55rem 1rem; border-radius: .45rem; font: inherit;
+    cursor: pointer; border: 1px solid var(--accent); }
+  .locbtn { background: transparent; color: var(--accent); margin: .3rem 0 0; }
+  .submit { background: var(--accent); color: var(--bg); font-weight: 700; }
+  #locstatus { font-size: .9rem; color: var(--muted); margin-left: .5rem; }
+  #photo-preview { max-width: 12rem; max-height: 12rem; border-radius: .4rem;
+    display: none; margin-top: .5rem; }
+</style>
+<div class="report">
+  <h1>{% translate "Report an issue" %}</h1>
+  <p class="help">
+    {% blocktranslate %}No account needed. The report is public from the
+    moment you submit it.{% endblocktranslate %}
+  </p>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="field">
+      {{ form.title.label_tag }}{{ form.title }}{{ form.title.errors }}
+    </div>
+    <div class="field">
+      {{ form.description.label_tag }}{{ form.description }}{{ form.description.errors }}
+    </div>
+    <div class="field">
+      <label>{% translate "Where is it?" %}</label>
+      <div class="latlon">
+        <div>{{ form.latitude.label_tag }}{{ form.latitude }}{{ form.latitude.errors }}</div>
+        <div>{{ form.longitude.label_tag }}{{ form.longitude }}{{ form.longitude.errors }}</div>
+      </div>
+      <button type="button" class="locbtn" id="uselocation" hidden>
+        {% translate "Use my current location" %}</button>
+      <span id="locstatus"></span>
+      <p class="help">{% blocktranslate %}Tip: in Google Maps, long-press a
+      spot and copy the two numbers.{% endblocktranslate %}</p>
+    </div>
+    <div class="field">
+      {{ form.photo.label_tag }}{{ form.photo }}{{ form.photo.errors }}
+      <img id="photo-preview" alt="">
+    </div>
+    <div class="field">
+      {{ form.reporter_name.label_tag }}{{ form.reporter_name }}{{ form.reporter_name.errors }}
+    </div>
+    <button type="submit" class="submit">{% translate "Submit report" %}</button>
+  </form>
+</div>
+<script>
+(function () {
+  /* Geolocation: progressive enhancement — button only appears with JS. */
+  var btn = document.getElementById("uselocation");
+  var status = document.getElementById("locstatus");
+  if ("geolocation" in navigator) {
+    btn.hidden = false;
+    btn.addEventListener("click", function () {
+      status.textContent = "…";
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        document.getElementById("id_latitude").value = pos.coords.latitude.toFixed(6);
+        document.getElementById("id_longitude").value = pos.coords.longitude.toFixed(6);
+        status.textContent = "✓";
+      }, function () {
+        status.textContent = "{% translate 'Could not get your location' %}";
+      });
+    });
+  }
+  /* Photo preview before submit. */
+  var photo = document.getElementById("id_photo");
+  var preview = document.getElementById("photo-preview");
+  photo.addEventListener("change", function () {
+    if (photo.files && photo.files[0]) {
+      preview.src = URL.createObjectURL(photo.files[0]);
+      preview.style.display = "block";
+    }
+  });
+})();
+</script>
+{% endblock %}

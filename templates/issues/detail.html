@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ issue.title }} — {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<style>
+  .issue .status { display: inline-block; border-radius: 999px; padding: .1rem .7rem;
+    font-size: .9rem; font-weight: 600; border: 1px solid var(--border); }
+  .issue .status.open { color: var(--accent); border-color: var(--accent); }
+  .issue .meta { color: var(--muted); margin: .4rem 0 1.2rem; }
+  .issue .photos { display: flex; gap: .8rem; flex-wrap: wrap; margin: 1rem 0; }
+  .issue .photos img { max-width: 18rem; max-height: 18rem; border-radius: .5rem; }
+  .issue .loc { border: 1px solid var(--border); border-radius: .6rem;
+    background: var(--card); padding: .8rem 1.1rem; margin: 1rem 0; font-size: .95rem; }
+</style>
+<div class="issue">
+  <p><a href="{% url 'issue_list' %}">← {% translate "All issues" %}</a></p>
+  <h1>{{ issue.title }}</h1>
+  <p class="meta">
+    <span class="status {{ issue.status }}">{{ issue.get_status_display }}</span>
+    · {% blocktranslate with date=issue.created_at|date:"j M Y, H:i" %}reported {{ date }}{% endblocktranslate %}
+    {% if issue.reporter_name %}
+      · {% blocktranslate with name=issue.reporter_name %}by {{ name }}{% endblocktranslate %}
+    {% endif %}
+  </p>
+  <p>{{ issue.description|linebreaks }}</p>
+  {% if issue.photos.all %}
+    <div class="photos">
+      {% for photo in issue.photos.all %}
+        <a href="{{ photo.image.url }}"><img src="{{ photo.image.url }}" alt=""></a>
+      {% endfor %}
+    </div>
+  {% endif %}
+  <div class="loc">
+    📍 {{ issue.latitude|floatformat:6 }}, {{ issue.longitude|floatformat:6 }}
+    — <a href="https://www.openstreetmap.org/?mlat={{ issue.latitude }}&mlon={{ issue.longitude }}#map=18/{{ issue.latitude }}/{{ issue.longitude }}"
+         rel="noopener">{% translate "view on OpenStreetMap" %}</a>
+  </div>
+</div>
+{% endblock %}

@@ -54,6 +54,8 @@
   <header>
     <a class="brand" href="/">{{ SITE_NAME }}</a>
     <nav>
+      <a href="{% url 'report_new' %}">{% translate "Report" %}</a>
+      <a href="{% url 'issue_list' %}">{% translate "Issues" %}</a>
       <a href="{% url 'about' %}">{% translate "About" %}</a>
       <a href="/api/v1/docs">{% translate "API" %}</a>
     </nav>

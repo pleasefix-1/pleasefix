@@ -28,14 +28,14 @@
 
 <div class="grid">
   <div class="tile">
-    <h2>{% translate "Report an issue" %}<span class="soon">{% translate "coming soon" %}</span></h2>
-    <p>{% blocktranslate %}A photo, a pin on the map, and a phone number
-    or email — no account needed. The report flow is being built now.{% endblocktranslate %}</p>
+    <h2><a href="{% url 'report_new' %}">{% translate "Report an issue" %}</a></h2>
+    <p>{% blocktranslate %}A photo, a location, and what's wrong —
+    no account needed.{% endblocktranslate %}</p>
   </div>
   <div class="tile">
-    <h2>{% translate "Browse issues nearby" %}<span class="soon">{% translate "coming soon" %}</span></h2>
-    <p>{% blocktranslate %}See what's already reported around you,
-    subscribe to updates, and add your own evidence.{% endblocktranslate %}</p>
+    <h2><a href="{% url 'issue_list' %}">{% translate "Browse issues" %}</a></h2>
+    <p>{% blocktranslate %}See what's already reported, check its
+    status, and follow up.{% endblocktranslate %}</p>
   </div>
   <div class="tile">
     <h2><a href="{% url 'about' %}">{% translate "How PleaseFix works" %}</a></h2>
