@@ -61,13 +61,15 @@ def test_full_flow_report_then_browse(client: Client) -> None:
     listing = client.get("/issues/")
     assert b"Broken streetlight" in listing.content
 
-    # And the public API serves it.
+    # And the public API serves it (by public ID, not the database pk).
     api = client.get("/api/v1/issues").json()
     assert len(api) == 1
     assert api[0]["title"].startswith("Broken streetlight")
     assert api[0]["latitude"] == pytest.approx(3.0738)
     assert api[0]["photos"]
-    assert client.get(f"/api/v1/issues/{issue.pk}").json()["id"] == issue.pk
+    assert api[0]["id"] == issue.public_id
+    assert api[0]["reference_code"] == f"PF-{issue.public_id}"
+    assert client.get(f"/api/v1/issues/{issue.public_id}").json()["id"] == issue.public_id
 
 
 def test_photo_is_optional_but_location_is_not(client: Client) -> None:
