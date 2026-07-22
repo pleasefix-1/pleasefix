@@ -34,6 +34,8 @@ runs `docker compose -f compose.yaml up -d` to skip the dev overrides.
 - API + interactive docs: http://localhost:8000/api/v1/docs
 - Health: http://localhost:8000/healthz
 - Admin: http://localhost:8000/admin/ (`docker compose exec app python manage.py createsuperuser`)
+- Sample data (a couple of issues, one with a photo):
+  `docker compose exec app python manage.py seed_sample_data`
 
 That single command is the whole stack — the same shape we deploy to
 production (Django app, Celery worker, PostgreSQL+PostGIS, Redis,
