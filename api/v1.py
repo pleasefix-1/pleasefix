@@ -12,8 +12,11 @@ from datetime import datetime
 from django.db.models import Prefetch
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
-from ninja import NinjaAPI, Schema
+from ninja import Field, NinjaAPI, Schema
+from ninja.errors import HttpError
+from ninja.responses import Status
 
+from core import abuse
 from core.models import Issue, IssueUpdate
 
 # Only public (non-hidden) updates are serialized — filter at the DB, not
@@ -54,6 +57,21 @@ class IssueOut(Schema):
     created_at: datetime
     photos: list[str]
     updates: list[UpdateOut]
+
+
+class IssueCreateIn(Schema):
+    title: str = Field(max_length=200)
+    description: str = Field(max_length=5000)
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
+    reporter_name: str = Field("", max_length=100)
+    source_url: str = Field("", max_length=500)
+
+
+class IssueCreateOut(IssueOut):
+    # Shown once, here in the response body — never stored raw or
+    # retrievable again. See Issue.objects.create_report.
+    claim_secret: str
 
 
 def _issue_out(issue: Issue) -> IssueOut:
@@ -99,3 +117,23 @@ def list_issues(request: HttpRequest) -> list[IssueOut]:
 def get_issue(request: HttpRequest, issue_id: str) -> IssueOut:
     qs = Issue.objects.public().prefetch_related("photos", _PUBLIC_UPDATES)
     return _issue_out(get_object_or_404(qs, public_id=issue_id))
+
+
+@api_v1.post("/issues", response={201: IssueCreateOut}, summary="Report a new issue")
+def create_issue(request: HttpRequest, payload: IssueCreateIn) -> Status[IssueCreateOut]:
+    # Same per-IP hourly limit as the web report form (core/abuse.py) —
+    # one budget across channels, not one per channel.
+    if abuse.throttled(request, "report", abuse.throttle_limit("report")):
+        raise HttpError(429, "Too many reports from this connection — try again later.")
+    issue, claim_secret = Issue.objects.create_report(
+        title=payload.title,
+        description=payload.description,
+        longitude=payload.longitude,
+        latitude=payload.latitude,
+        reporter_name=payload.reporter_name,
+        source_url=payload.source_url,
+        ip_hash=abuse.ip_hash(request),
+        source_channel=Issue.SourceChannel.API,
+    )
+    out = IssueCreateOut(**_issue_out(issue).model_dump(), claim_secret=claim_secret)
+    return Status(201, out)

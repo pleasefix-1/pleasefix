@@ -1,6 +1,137 @@
 {
   "components": {
     "schemas": {
+      "IssueCreateIn": {
+        "properties": {
+          "description": {
+            "maxLength": 5000,
+            "title": "Description",
+            "type": "string"
+          },
+          "latitude": {
+            "maximum": 90,
+            "minimum": -90,
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "maximum": 180,
+            "minimum": -180,
+            "title": "Longitude",
+            "type": "number"
+          },
+          "reporter_name": {
+            "default": "",
+            "maxLength": 100,
+            "title": "Reporter Name",
+            "type": "string"
+          },
+          "source_url": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Source Url",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "description",
+          "latitude",
+          "longitude"
+        ],
+        "title": "IssueCreateIn",
+        "type": "object"
+      },
+      "IssueCreateOut": {
+        "properties": {
+          "claim_secret": {
+            "title": "Claim Secret",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_claimed": {
+            "title": "Is Claimed",
+            "type": "boolean"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "photos": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Photos",
+            "type": "array"
+          },
+          "reference_code": {
+            "title": "Reference Code",
+            "type": "string"
+          },
+          "reporter_name": {
+            "title": "Reporter Name",
+            "type": "string"
+          },
+          "source_url": {
+            "title": "Source Url",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updates": {
+            "items": {
+              "$ref": "#/components/schemas/UpdateOut"
+            },
+            "title": "Updates",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "reference_code",
+          "title",
+          "description",
+          "status",
+          "latitude",
+          "longitude",
+          "reporter_name",
+          "source_url",
+          "is_claimed",
+          "created_at",
+          "photos",
+          "updates",
+          "claim_secret"
+        ],
+        "title": "IssueCreateOut",
+        "type": "object"
+      },
       "IssueOut": {
         "properties": {
           "created_at": {
@@ -170,6 +301,33 @@
           }
         },
         "summary": "List issues (newest first)"
+      },
+      "post": {
+        "operationId": "api_v1_create_issue",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueCreateOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "summary": "Report a new issue"
       }
     },
     "/api/v1/issues/{issue_id}": {
