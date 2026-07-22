@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PleaseFix\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-22 09:45+0800\n"
+"POT-Creation-Date: 2026-07-22 09:58+0800\n"
 "PO-Revision-Date: 2026-07-22 08:45+0800\n"
 "Last-Translator: PleaseFix Maintainers <pleasefix-1@users.noreply.github.com>\n"
 "Language-Team: Bahasa Melayu\n"
@@ -55,63 +55,75 @@ msgstr "Tambah kemas kini"
 msgid "Still broken? Fixed? Add what you know — photos help."
 msgstr "Masih rosak? Sudah dibaiki? Kongsikan apa yang anda tahu — gambar sangat membantu."
 
-#: core/forms.py:75
+#: core/forms.py:72
+msgid "Reporter secret (optional)"
+msgstr "Rahsia pelapor (tidak wajib)"
+
+#: core/forms.py:76
+msgid "If you're the original reporter, paste the secret you were given — your update gets a verified badge."
+msgstr "Jika anda pelapor asal, tampal rahsia yang diberikan kepada anda — kemas kini anda mendapat lencana disahkan."
+
+#: core/forms.py:84
+msgid "Reporter secret"
+msgstr "Rahsia pelapor"
+
+#: core/forms.py:92
 msgid "Link to import"
 msgstr "Pautan untuk diimport"
 
-#: core/models.py:27
+#: core/models.py:42
 msgid "Open"
 msgstr "Terbuka"
 
-#: core/models.py:28
+#: core/models.py:43
 msgid "Fixed"
 msgstr "Selesai"
 
-#: core/models.py:29
+#: core/models.py:44
 msgid "Closed"
 msgstr "Ditutup"
 
-#: core/models.py:34
+#: core/models.py:49
 msgid "title"
 msgstr "tajuk"
 
-#: core/models.py:35
+#: core/models.py:50
 msgid "description"
 msgstr "keterangan"
 
-#: core/models.py:36
+#: core/models.py:51
 msgid "source link"
 msgstr "pautan sumber"
 
-#: core/models.py:37
+#: core/models.py:52
 msgid "location"
 msgstr "lokasi"
 
-#: core/models.py:39
+#: core/models.py:54
 msgid "status"
 msgstr "status"
 
-#: core/models.py:41
+#: core/models.py:56
 msgid "reporter name"
 msgstr "nama pelapor"
 
-#: core/models.py:84
+#: core/models.py:125
 msgid "update"
 msgstr "kemas kini"
 
-#: core/models.py:85
+#: core/models.py:126
 msgid "name"
 msgstr "nama"
 
-#: core/models.py:86 core/models.py:136
+#: core/models.py:129 core/models.py:180
 msgid "photo"
 msgstr "gambar"
 
-#: core/views.py:16
+#: core/views.py:23
 msgid "Too many submissions from your connection — please try again later."
 msgstr "Terlalu banyak penghantaran daripada sambungan anda — sila cuba sebentar lagi."
 
-#: core/views.py:76
+#: core/views.py:88
 #, python-format
 msgid ""
 "\n"
@@ -120,13 +132,23 @@ msgid ""
 msgstr "\n\n(Diimport daripada kiriman oleh %(author)s)"
 "\n"
 "\n"
+"(Diimport daripada kiriman oleh %(author)s)\n"
+"\n"
 "(Diimport daripada kiriman oleh %(author)s)"
 
-#: core/views.py:137
+#: core/views.py:154 core/views.py:182
+msgid "That secret doesn't match this report."
+msgstr "Rahsia itu tidak sepadan dengan laporan ini."
+
+#: core/views.py:164
 msgid "Update added — thank you."
 msgstr "Kemas kini ditambah — terima kasih."
 
-#: core/views.py:162
+#: core/views.py:180
+msgid "Report claimed — it's now linked to your account."
+msgstr "Laporan dituntut — kini dipautkan ke akaun anda."
+
+#: core/views.py:195
 msgid "Thanks — this has been reported for review by moderators."
 msgstr "Terima kasih — ini telah dilaporkan untuk semakan moderator."
 
@@ -468,11 +490,19 @@ msgstr "Isu"
 msgid "API"
 msgstr "API"
 
-#: templates/base.html:89
+#: templates/base.html:69
+msgid "Log out"
+msgstr "Log keluar"
+
+#: templates/base.html:71
+msgid "Log in"
+msgstr "Log masuk"
+
+#: templates/base.html:94
 msgid "An independent, open civic platform."
 msgstr "Platform sivik bebas dan terbuka."
 
-#: templates/base.html:90
+#: templates/base.html:95
 msgid "Source code"
 msgstr "Kod sumber"
 
@@ -530,65 +560,120 @@ msgid ""
 "    designed for third-party apps and dashboards."
 msgstr "Sumber terbuka, Apache-2.0, dengan API awam yang direka untuk aplikasi dan papan pemuka pihak ketiga."
 
-#: templates/issues/detail.html:54
+#: templates/issues/detail.html:66
 msgid "All issues"
 msgstr "Semua isu"
 
-#: templates/issues/detail.html:59
+#: templates/issues/detail.html:70
+msgid "Your report is live. Save your reporter secret:"
+msgstr "Laporan anda sudah disiarkan. Simpan rahsia pelapor anda:"
+
+#: templates/issues/detail.html:72
+msgid ""
+"This is shown only once. Use it to post\n"
+"      verified follow-ups as the original reporter, or to claim this\n"
+"      report into an account later."
+msgstr "Ini dipaparkan sekali sahaja. Gunakannya untuk menghantar susulan yang disahkan sebagai pelapor asal, atau untuk menuntut laporan ini ke dalam akaun kemudian."
+
+#: templates/issues/detail.html:76
+msgid "Create an account"
+msgstr "Cipta akaun"
+
+#: templates/issues/detail.html:77
+msgid "or"
+msgstr "atau"
+
+#: templates/issues/detail.html:78
+msgid "log in"
+msgstr "log masuk"
+
+#: templates/issues/detail.html:79
+msgid "to keep track of your reports."
+msgstr "untuk menjejaki laporan anda."
+
+#: templates/issues/detail.html:88
 #, python-format
 msgid "reported %(date)s"
 msgstr "dilaporkan %(date)s"
 
-#: templates/issues/detail.html:61
+#: templates/issues/detail.html:90
 #, python-format
 msgid "by %(name)s"
 msgstr "oleh %(name)s"
 
-#: templates/issues/detail.html:64
+#: templates/issues/detail.html:93
 msgid "original post"
 msgstr "kiriman asal"
 
-#: templates/issues/detail.html:78
+#: templates/issues/detail.html:96
+msgid "claimed"
+msgstr "dituntut"
+
+#: templates/issues/detail.html:101
+msgid ""
+"You reported this — your updates\n"
+"    below are automatically verified."
+msgstr "Anda yang melaporkan ini — kemas kini anda di bawah disahkan secara automatik."
+
+#: templates/issues/detail.html:106
+msgid ""
+"Your report? Claim it with your reporter\n"
+"      secret:"
+msgstr "Laporan anda? Tuntut dengan rahsia pelapor anda:"
+
+#: templates/issues/detail.html:109
+msgid "Claim"
+msgstr "Tuntut"
+
+#: templates/issues/detail.html:123
 msgid "view on OpenStreetMap"
 msgstr "lihat di OpenStreetMap"
 
-#: templates/issues/detail.html:81
+#: templates/issues/detail.html:126
 #, python-format
 msgid "%(n)s update"
 msgid_plural "%(n)s updates"
 msgstr[0] "%(n)s kemas kini"
 
-#: templates/issues/detail.html:85
+#: templates/issues/detail.html:130
 msgid "Anonymous"
 msgstr "Tanpa nama"
 
-#: templates/issues/detail.html:88 templates/issues/detail.html:118
+#: templates/issues/detail.html:131
+msgid "original reporter"
+msgstr "pelapor asal"
+
+#: templates/issues/detail.html:134 templates/issues/detail.html:172
 msgid "report abuse"
 msgstr "laporkan penyalahgunaan"
 
-#: templates/issues/detail.html:94
+#: templates/issues/detail.html:140
 msgid ""
 "No updates yet. Seen this problem?\n"
 "      Add what you know below."
 msgstr "Belum ada kemas kini. Pernah nampak masalah ini? Kongsikan apa yang anda tahu di bawah."
 
-#: templates/issues/detail.html:101 templates/issues/report_new.html:41
+#: templates/issues/detail.html:147 templates/issues/report_new.html:41
 msgid "Leave this field empty"
 msgstr "Biarkan ruangan ini kosong"
 
-#: templates/issues/detail.html:105
+#: templates/issues/detail.html:153
+msgid "Are you the original reporter?"
+msgstr "Adakah anda pelapor asal?"
+
+#: templates/issues/detail.html:159
 msgid "Post update"
 msgstr "Hantar kemas kini"
 
-#: templates/issues/detail.html:110
+#: templates/issues/detail.html:164
 msgid "Share:"
 msgstr "Kongsi:"
 
-#: templates/issues/detail.html:116
+#: templates/issues/detail.html:170
 msgid "Copied!"
 msgstr "Disalin!"
 
-#: templates/issues/detail.html:116
+#: templates/issues/detail.html:170
 msgid "Copy link"
 msgstr "Salin pautan"
 
