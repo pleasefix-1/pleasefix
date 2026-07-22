@@ -14,7 +14,7 @@
           },
           "id": {
             "title": "Id",
-            "type": "integer"
+            "type": "string"
           },
           "latitude": {
             "title": "Latitude",
@@ -31,8 +31,16 @@
             "title": "Photos",
             "type": "array"
           },
+          "reference_code": {
+            "title": "Reference Code",
+            "type": "string"
+          },
           "reporter_name": {
             "title": "Reporter Name",
+            "type": "string"
+          },
+          "source_url": {
+            "title": "Source Url",
             "type": "string"
           },
           "status": {
@@ -46,12 +54,14 @@
         },
         "required": [
           "id",
+          "reference_code",
           "title",
           "description",
           "status",
           "latitude",
           "longitude",
           "reporter_name",
+          "source_url",
           "created_at",
           "photos"
         ],
@@ -118,7 +128,7 @@
             "required": true,
             "schema": {
               "title": "Issue Id",
-              "type": "integer"
+              "type": "string"
             }
           }
         ],
@@ -134,7 +144,7 @@
             "description": "OK"
           }
         },
-        "summary": "Get one issue"
+        "summary": "Get one issue by its public ID"
       }
     },
     "/api/v1/version": {

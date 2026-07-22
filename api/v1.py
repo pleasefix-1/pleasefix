@@ -28,26 +28,30 @@ class VersionOut(Schema):
 
 
 class IssueOut(Schema):
-    id: int
+    id: str
+    reference_code: str
     title: str
     description: str
     status: str
     latitude: float
     longitude: float
     reporter_name: str
+    source_url: str
     created_at: datetime
     photos: list[str]
 
 
 def _issue_out(issue: Issue) -> IssueOut:
     return IssueOut(
-        id=issue.pk,
+        id=issue.public_id,
+        reference_code=issue.reference_code,
         title=issue.title,
         description=issue.description,
         status=issue.status,
         latitude=issue.latitude,
         longitude=issue.longitude,
         reporter_name=issue.reporter_name,
+        source_url=issue.source_url,
         created_at=issue.created_at,
         photos=[p.image.url for p in issue.photos.all()],
     )
@@ -63,6 +67,8 @@ def list_issues(request: HttpRequest) -> list[IssueOut]:
     return [_issue_out(i) for i in Issue.objects.prefetch_related("photos")[:100]]
 
 
-@api_v1.get("/issues/{issue_id}", response=IssueOut, summary="Get one issue")
-def get_issue(request: HttpRequest, issue_id: int) -> IssueOut:
-    return _issue_out(get_object_or_404(Issue.objects.prefetch_related("photos"), pk=issue_id))
+@api_v1.get("/issues/{issue_id}", response=IssueOut, summary="Get one issue by its public ID")
+def get_issue(request: HttpRequest, issue_id: str) -> IssueOut:
+    return _issue_out(
+        get_object_or_404(Issue.objects.prefetch_related("photos"), public_id=issue_id)
+    )
