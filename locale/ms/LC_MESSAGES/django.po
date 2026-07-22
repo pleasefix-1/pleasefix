@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PleaseFix\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-22 10:24+0800\n"
+"POT-Creation-Date: 2026-07-22 10:50+0800\n"
 "PO-Revision-Date: 2026-07-22 08:45+0800\n"
 "Last-Translator: PleaseFix Maintainers <pleasefix-1@users.noreply.github.com>\n"
 "Language-Team: Bahasa Melayu\n"
@@ -171,11 +171,11 @@ msgstr "nama"
 msgid "photo"
 msgstr "gambar"
 
-#: core/views.py:19
+#: core/views.py:20
 msgid "Too many submissions from your connection — please try again later."
 msgstr "Terlalu banyak penghantaran daripada sambungan anda — sila cuba sebentar lagi."
 
-#: core/views.py:83
+#: core/views.py:126
 #, python-format
 msgid ""
 "\n"
@@ -190,23 +190,23 @@ msgstr ""
 "\n"
 "(Diimport daripada kiriman oleh %(author)s)"
 
-#: core/views.py:151 core/views.py:182
+#: core/views.py:194 core/views.py:225
 msgid "That secret doesn't match this report."
 msgstr "Rahsia itu tidak sepadan dengan laporan ini."
 
-#: core/views.py:161
+#: core/views.py:204
 msgid "Update added — thank you."
 msgstr "Kemas kini ditambah — terima kasih."
 
-#: core/views.py:180
+#: core/views.py:223
 msgid "Report claimed — it's now linked to your account."
 msgstr "Laporan dituntut — kini dipautkan ke akaun anda."
 
-#: core/views.py:198
+#: core/views.py:241
 msgid "Thanks — this has been reported for review by moderators."
 msgstr "Terima kasih — ini telah dilaporkan untuk semakan moderator."
 
-#: templates/about.html:3 templates/base.html:82
+#: templates/about.html:3 templates/base.html:93
 msgid "About"
 msgstr "Perihal"
 
@@ -485,7 +485,7 @@ msgstr "Siapa bertanggungjawab atas apa selalunya menjadi pengetahuan lisan sema
 msgid "How it works"
 msgstr "Cara ia berfungsi"
 
-#: templates/about.html:207 templates/base.html:80
+#: templates/about.html:207 templates/base.html:91
 msgid "Report"
 msgstr "Lapor"
 
@@ -536,27 +536,27 @@ msgstr "Teroka API"
 msgid "Source & contributing"
 msgstr "Kod sumber & penyumbangan"
 
-#: templates/base.html:81
+#: templates/base.html:92
 msgid "Issues"
 msgstr "Isu"
 
-#: templates/base.html:83
+#: templates/base.html:94
 msgid "API"
 msgstr "API"
 
-#: templates/base.html:85
+#: templates/base.html:96
 msgid "Log out"
 msgstr "Log keluar"
 
-#: templates/base.html:87
+#: templates/base.html:98
 msgid "Log in"
 msgstr "Log masuk"
 
-#: templates/base.html:110
+#: templates/base.html:121
 msgid "An independent, open civic platform."
 msgstr "Platform sivik bebas dan terbuka."
 
-#: templates/base.html:111
+#: templates/base.html:122
 msgid "Source code"
 msgstr "Kod sumber"
 
@@ -751,6 +751,29 @@ msgstr "Dapatkan butiran"
 #: templates/issues/report_import.html:34
 msgid "Or fill in the report form directly"
 msgstr "Atau isi borang laporan secara terus"
+
+#: templates/issues/report_import.html:36
+msgid "Import straight from your browser"
+msgstr "Import terus dari pelayar anda"
+
+#: templates/issues/report_import.html:38
+msgid ""
+"Some sites (like Reddit) block our server from\n"
+"    reading posts, but your own browser can. Drag this button to your\n"
+"    bookmarks bar, then click it while viewing a post — it opens a report\n"
+"    prefilled from that page, no copy-paste:"
+msgstr "Sesetengah laman (seperti Reddit) menyekat pelayan kami daripada membaca kiriman, tetapi pelayar anda sendiri boleh. Seret butang ini ke bar penanda buku anda, kemudian klik semasa melihat kiriman — ia membuka laporan yang telah diisi daripada halaman itu, tanpa salin-tampal:"
+
+#: templates/issues/report_import.html:45
+msgid "Report to PleaseFix"
+msgstr "Lapor ke PleaseFix"
+
+#: templates/issues/report_import.html:48
+msgid ""
+"On your phone, install PleaseFix (your browser's\n"
+"    \"Add to Home screen\") and then use the system Share button on any post\n"
+"    to send it here."
+msgstr "Pada telefon anda, pasang PleaseFix (\"Tambah ke Skrin Utama\" pada pelayar anda) kemudian gunakan butang Kongsi sistem pada mana-mana kiriman untuk menghantarnya ke sini."
 
 #: templates/issues/report_new.html:26
 msgid ""
