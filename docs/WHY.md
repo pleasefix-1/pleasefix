@@ -1,6 +1,8 @@
 # Why PleaseFix?
 
-Malaysia already has official complaint channels — SISPAA, PBT ticket
+Malaysia already has official complaint channels — SISPAA (Sistem
+Pengurusan Aduan Awam, the government's public-complaint system),
+local-council (Pihak Berkuasa Tempatan, PBT) ticket
 systems, agency hotlines. PleaseFix is not another complaint inbox. It is
 the **public, community-owned issue tracker** that official channels
 structurally cannot be.
@@ -18,7 +20,8 @@ A real, typical issue:
 - **Official route:** file with one agency → "not our jurisdiction /
   private company" → **closed**. The barrier is still there.
 - **PleaseFix route:** one open, public record tracking every parallel
-  filing — SISPAA: rejected; MPSJ: filed; Prasarana: filed; raised with
+  filing — SISPAA: rejected; the Subang Jaya city council: filed;
+  Prasarana (the public-transport operator): filed; raised with
   the local councillor — and the issue **stays open until it is actually
   fixed**, no matter how many agencies close their end of it.
 

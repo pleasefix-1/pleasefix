@@ -7,10 +7,34 @@ channels — keep the issue **open and public until it is actually fixed**,
 with every filing, photo, and status change on the record.
 
 Inspired by FixMyStreet; built as an independent open platform.
-**Why this exists alongside SISPAA and agency hotlines:** see
+**Why this exists alongside SISPAA (the government's official
+complaint system) and agency hotlines:** see
 [docs/WHY.md](docs/WHY.md). Architecture and decisions:
 [docs/DESIGN.md](docs/DESIGN.md). Want to help?
 [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## New here? Pick your door
+
+- **Understand it in 10 minutes** — the developer walkthrough:
+  [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md) here on GitHub, or the
+  interactive version at `/site/dev.html` on any running instance —
+  architecture, a report's journey through the code, and every data
+  model, with the *why* for each.
+- **Make your first change** — [good first
+  issues](docs/GOOD_FIRST_ISSUES.md) (small, curated, each says how to
+  know you're done) and the [role-based tracks](docs/TRACKS.md)
+  (frontend / backend / AI-integrations; interactive version at
+  `/site/contribute.html`).
+- **Your first PR, step by step** — [the eight-step
+  guide](CONTRIBUTING.md#your-first-pull-request-step-by-step) from
+  fork to review.
+- **Or skip our code entirely** — build a client against
+  [the API](CONTRIBUTING.md#build-a-client-instead).
+
+The culture is **[stone soup](CONTRIBUTING.md#the-culture-stone-soup)**:
+informal, no grand roadmap, scratch your own itch, have fun. The
+formality lives in CI, not in people; the code of conduct is one line
+(be kind, assume good faith, no harassment).
 
 ## Status
 

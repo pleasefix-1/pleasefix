@@ -6,9 +6,41 @@ burden and small blast radius** — most of the "is this code okay?"
 judgment is automated, so humans review intent, not formatting.
 
 **New here?** Start with the role-based onboarding guide
-(`site/contribute.html` — frontend, backend, or AI/integrations, each
-with a 10-minute setup and a first-change walkthrough), then pick
-something from [docs/GOOD_FIRST_ISSUES.md](docs/GOOD_FIRST_ISSUES.md).
+([docs/TRACKS.md](docs/TRACKS.md); interactive version at
+`/site/contribute.html` on a running instance — frontend, backend, or
+AI/integrations, each with a 10-minute setup and a first-change
+walkthrough), then pick
+something from [docs/GOOD_FIRST_ISSUES.md](docs/GOOD_FIRST_ISSUES.md)
+(also rendered at `site/good-first-issues.html`, `/site/` on any
+running instance).
+
+## The culture: stone soup
+
+You know the story: travellers arrive in a village with nothing but a
+pot and a stone, and announce they're making stone soup. A curious
+villager contributes a cabbage to improve it, another some carrots,
+another a bit of chicken — and soon there's a rich soup that feeds
+everyone, made from a stone. **This project is the stone.** The seed
+code is deliberately small and obviously unfinished; it becomes a
+platform because people who want a client, an adapter, a translation,
+or a map layer drop their piece in the pot.
+
+What that means in practice:
+
+- **Development is informal. Hack, experiment, have fun.** Prototype in
+  a branch, open a half-finished PR to talk about it, build something
+  weird on the API. Nobody here is your project manager.
+- **There is no grand roadmap — scratch your own itch.** The
+  [good first issues](docs/GOOD_FIRST_ISSUES.md) and the fast-follows
+  in [docs/DESIGN.md](docs/DESIGN.md) are suggestions, not assignments.
+  The best contribution is the one you actually want to exist (that's
+  how this whole project started).
+- **The formality lives in CI, not in people.** The strict tooling
+  exists precisely *so that* humans can stay relaxed — reviewers check
+  "is this a good idea?", robots check everything else.
+- **Minimal code of conduct**: be kind, assume good faith, no
+  harassment — of anyone, in any channel. Maintainers will remove
+  people who make contributing unfun. That's the whole code.
 
 ## Where to contribute (trust gradient)
 
@@ -53,6 +85,37 @@ and thin client templates (SPA and HTMX/BFF) are published separately,
 and a hosted sandbox with seeded Malaysian data is planned so you never
 need Docker or PostGIS to build against the API. Community clients get
 listed in the registry — recognition is the currency.
+
+## Your first pull request, step by step
+
+1. **Fork and clone** — fork on GitHub, then
+   `git clone git@github.com:YOU/pleasefix.git && cd pleasefix`.
+2. **Set up** (once): `cp .env.example .env`, `uv sync`,
+   `docker compose up -d db`, then
+   `uv run python manage.py migrate && uv run python manage.py seed_sample_data`.
+   (Windows: see `docs/ONBOARDING-WINDOWS.md`. Full stack instead:
+   `docker compose up`.)
+3. **Look around** — the developer walkthrough
+   ([docs/WALKTHROUGH.md](docs/WALKTHROUGH.md); interactive version at
+   `/site/dev.html` on your running instance) shows the architecture,
+   a report's journey, and every data model in ~10 minutes.
+4. **Pick something** — a [good first issue](docs/GOOD_FIRST_ISSUES.md),
+   a role track ([docs/TRACKS.md](docs/TRACKS.md)), or your own itch. Say so on
+   the issue tracker so nobody doubles up.
+5. **Branch and hack** — `git switch -c fix/streetlight-form`. Run
+   `uv run python manage.py runserver` and poke at
+   http://localhost:8000. Have fun; half-formed ideas are fine.
+6. **Run the gauntlet** (this is exactly what CI runs):
+   `compilemessages`, `ruff check`, `ruff format --check`, `mypy`,
+   `lint-imports`, `pytest`, and the generated-artifact checks
+   (`export_openapi_schema`, `export_good_first_issues` + clean
+   `git diff`). Green locally means green in CI.
+7. **Commit** (style below), **push**, and **open the PR** against
+   `main`. Describe the *why* in a sentence or two — a screenshot if
+   it's visual.
+8. **What happens next**: CI does the style/type/test judgment; a human
+   reviews the idea. Expect friendly, small-diff-loving review.
+   Migrations, if any, get split into their own PR (maintainer-gated).
 
 ## Commit style
 

@@ -167,19 +167,68 @@ uv run ruff check . && uv run ruff format --check .
 uv run mypy .
 uv run lint-imports
 uv run pytest
-uv run python manage.py export_openapi_schema && git diff --exit-code api/openapi.json</div>
-  <p>Where to make your first change: the role-based tracks in
-  <a href="contribute.html">contribute.html</a> and the curated list in
-  <span class="filetag" data-file="docs/GOOD_FIRST_ISSUES.md">docs/GOOD_FIRST_ISSUES.md</span>.
-  Rules that bite (protected core, no new deps, i18n-from-day-one) are in
+uv run python manage.py export_openapi_schema && git diff --exit-code api/openapi.json
+uv run python manage.py export_good_first_issues && git diff --exit-code site/good-first-issues.html</div>
+  <p>Rules that bite (protected core, no new deps, i18n-from-day-one) are in
   <span class="filetag" data-file="AGENTS.md">AGENTS.md</span> — they apply
   to humans and AI agents alike.</p>
+
+  <h2>5 · Lost? Start here</h2>
+  <div class="card">
+    <p><strong>The culture is stone soup.</strong> Travellers with
+    nothing but a pot and a stone announce they're making stone soup;
+    curious villagers each add a cabbage, some carrots, a bit of
+    chicken — and soon there's a soup that feeds everyone, made from a
+    stone. <em>This codebase is the stone.</em> It becomes a platform
+    because people who want a client, an adapter, or a translation drop
+    their piece in the pot.</p>
+    <p>So: <strong>development is informal — hack, experiment, have
+    fun.</strong> There is no grand roadmap; <strong>scratch your own
+    itch</strong>. The formality lives in CI (the gauntlet above), not
+    in people, and the code of conduct is one line: be kind, assume
+    good faith, no harassment — maintainers remove people who make
+    contributing unfun. The long version is in
+    <span class="filetag" data-file="CONTRIBUTING.md">CONTRIBUTING.md</span>.</p>
+    <p>If you don't know what to build yet:</p>
+    <ul>
+      <li><a href="good-first-issues.html">Good first issues</a> —
+        small, curated starter tasks, each naming the files you'll touch
+        and how to know you're done
+        (source: <span class="filetag" data-file="docs/GOOD_FIRST_ISSUES.md">docs/GOOD_FIRST_ISSUES.md</span>).</li>
+      <li><a href="contribute.html">Role-based tracks</a> — frontend,
+        backend, or AI/integrations, each with a 10-minute setup and a
+        first-change walkthrough.</li>
+      <li>Or ignore both and build a client against
+        <a href="/api/v1/docs">the API</a> — that's the stone-soup move.</li>
+    </ul>
+    <p><strong>Glossary</strong> (Malaysian civic terms you'll meet in the
+    code and docs — not every developer knows these, so we spell them out):</p>
+    <ul>
+      <li><strong>PBT</strong> — <em>Pihak Berkuasa Tempatan</em>, a local
+        authority/council (e.g. Majlis Bandaraya Petaling Jaya, MBPJ).
+        The default owner of potholes, drains, and streetlights.</li>
+      <li><strong>JKR</strong> — <em>Jabatan Kerja Raya</em>, the Public
+        Works Department (federal/state roads and bridges).</li>
+      <li><strong>TNB</strong> — <em>Tenaga Nasional Berhad</em>, the
+        national electricity utility (some streetlights are theirs).</li>
+      <li><strong>SISPAA</strong> — <em>Sistem Pengurusan Aduan Awam</em>,
+        the government's official public-complaint system.</li>
+      <li><strong>Prasarana</strong> — the state-owned public-transport
+        operator (LRT — light rail transit, monorail, buses).</li>
+      <li><strong>aduan</strong> — Bahasa Melayu for “complaint”;
+        <strong>selesai</strong> — “resolved/done”.</li>
+    </ul>
+  </div>
 
   <footer>
     <p>This page is a maintained artifact: <span class="filetag"
     data-file="core/tests/test_dev_site.py">core/tests/test_dev_site.py</span>
     fails CI if a core model is missing here or a referenced file moved.
-    Change the domain? Update this walkthrough in the same PR.</p>
+    Change the domain? Update this walkthrough — and its GitHub-readable
+    markdown mirror <span class="filetag"
+    data-file="docs/WALKTHROUGH.md">docs/WALKTHROUGH.md</span> — in the
+    same PR (the role tracks likewise mirror to <span class="filetag"
+    data-file="docs/TRACKS.md">docs/TRACKS.md</span>).</p>
   </footer>
 </main>
 
@@ -247,7 +296,10 @@ const STEPS = [
   {t:"Routing: point → areas → bodies → categories", f:"core/models.py",
    b:`<p><code>Category.objects.for_point(location)</code> returns what the
    reporter can pick: the union of categories from <em>every</em> active
-   body whose area covers the point. Overlap (PBT + JKR + TNB at one
+   body whose area covers the point. Overlap — a Pihak Berkuasa
+   Tempatan (PBT, the local council), Jabatan Kerja Raya (JKR, the
+   Public Works Department), and Tenaga Nasional Berhad (TNB, the
+   electricity utility) all at one
    spot) is the normal case. Zero matches is accepted and marked, never
    rejected — "we don't know who owns this yet" is honest data.</p>`},
   {t:"The claim token — shown once, never stored", f:"core/models.py",
@@ -274,8 +326,9 @@ const STEPS = [
    changes are public, attributed record entries.</p>`},
   {t:"Filings: the community record vs agency tickets", f:"core/models.py",
    b:`<p>Each official complaint is a <code>Filing</code> — one per
-   (issue, body), many per issue: <em>MPSJ: filed · Prasarana: filed ·
-   SISPAA: ref ADU-12345</em>. The agency closing its ticket updates
+   (issue, body), many per issue: <em>the Subang Jaya city council:
+   filed · Prasarana (the public-transport operator): filed · SISPAA
+   (the government's public-complaint system): ref ADU-12345</em>. The agency closing its ticket updates
    <strong>that filing only</strong>. The issue stays open until the
    problem is actually fixed — that is the whole point of the platform
    (see <a href="index.html">why</a>).</p>`},
@@ -327,21 +380,21 @@ const MODELS = {
             ["external_code","gov code, for imports"]],
     rels:["Body","Issue"]},
   Body: {group:"Routing (jurisdictions are data, not code)",
-    why:"An agency (PBT, JKR, TNB, Prasarana…). dispatch_email is the delivery floor — most Malaysian agencies are an inbox, and that's fine.",
+    why:"An agency: a Pihak Berkuasa Tempatan (PBT — local council), Jabatan Kerja Raya (JKR — Public Works), Tenaga Nasional Berhad (TNB — electricity), Prasarana (public transport)… dispatch_email is the delivery floor — most Malaysian agencies are an inbox, and that's fine.",
     fields:[["name, slug",""],["dispatch_email","email adapter floor; category can override"],
             ["areas","M2M to Area — which ground it covers"],["is_active",""]],
     rels:["Area","Category","Filing"]},
   CategoryGroup: {group:"Routing (jurisdictions are data, not code)",
-    why:"Two-level dropdown. Malaysian PBT taxonomies are large; a flat list dies at ~30 entries.",
+    why:"Two-level dropdown. Malaysian local-council (PBT) complaint taxonomies are large; a flat list dies at ~30 entries.",
     fields:[["name, order",""]], rels:["Category"]},
   Category: {group:"Routing (jurisdictions are data, not code)",
-    why:"A per-body join, NOT a global taxonomy — unique on (body, name). The reporter sees the union across all bodies covering their point, because PBT + JKR + TNB overlap is the normal case. A global category table with one agency FK would not survive contact with reality.",
+    why:"A per-body join, NOT a global taxonomy — unique on (body, name). The reporter sees the union across all bodies covering their point, because local council + Public Works (JKR) + the electricity utility (TNB) overlapping at one point is the normal case. A global category table with one agency FK would not survive contact with reality.",
     fields:[["body → Body","the join that matters"],
             ["name, group","unique per body"],
             ["state","confirmed / unconfirmed / inactive — unconfirmed holds dispatch; soft-delete only"],
-            ["dispatch_email","overrides the body's (one PBT: rubbish by email, roads via SISPAA)"],
+            ["dispatch_email","overrides the body's (one council might take rubbish by email but roads via SISPAA)"],
             ["photo_required, non_public, prefer_if_multiple","per-category behaviour flags"],
-            ["sispaa_category","mapping into the SISPAA taxonomy"],
+            ["sispaa_category","mapping into the taxonomy of SISPAA, the government's public-complaint system"],
             ["extra_fields","typed extra-questions schema; answers land on Issue.extra_answers"]],
     rels:["Body","CategoryGroup","Issue"]},
   Tag: {group:"Routing (jurisdictions are data, not code)",
