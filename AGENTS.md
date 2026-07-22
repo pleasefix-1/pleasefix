@@ -50,6 +50,7 @@ and commit the diff.
 | `locale_vendor/` | BM translations for third-party apps (allauth) | |
 | `core/tests/`, `conftest.py` | pytest + pytest-django + factory-boy | tests hit real PostGIS, no mocked ORM |
 | `docs/`, `site/` | public docs & onboarding | reference concrete file paths — update them when layout changes |
+| `site/dev.html` | interactive developer walkthrough (architecture, report journey, data model) | maintained artifact: `core/tests/test_dev_site.py` fails CI if a core model is missing from it or a referenced file moved — update it in the same PR |
 | `.github/workflows/ci.yml` | the gauntlet above | runs with `DEBUG=true` |
 
 ## Rules that bite
@@ -85,5 +86,8 @@ and commit the diff.
   security-review pass over your diff before pushing is worth it —
   abuse-control and identity-handling code is security-sensitive.
 - When you change file layout or commands, update this file,
-  `site/contribute.html`, and `docs/GOOD_FIRST_ISSUES.md` in the same
-  change — onboarding docs that lie are worse than none.
+  `site/contribute.html`, `site/dev.html`, and
+  `docs/GOOD_FIRST_ISSUES.md` in the same change — onboarding docs that
+  lie are worse than none. For `dev.html` the sync is enforced:
+  `core/tests/test_dev_site.py` fails when a model is missing from the
+  walkthrough or a referenced file moved.

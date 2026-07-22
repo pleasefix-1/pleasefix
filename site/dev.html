@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How PleaseFix works — developer walkthrough</title>
+<meta name="description" content="Interactive walkthrough of the PleaseFix architecture, a report's journey through the code, and the full data model.">
+<!--
+  MAINTAINED ARTIFACT: this page is kept in sync with the code by
+  core/tests/test_dev_site.py — every core model must appear as a
+  data-model card, and every data-file reference must exist on disk.
+  When you change the domain model or move files, update this page in
+  the same PR (see AGENTS.md).
+-->
+<style>
+  :root {
+    --fg: #1a1a1a; --bg: #ffffff; --accent: #0b6e4f; --accent-2: #0b4f6e;
+    --muted: #5a5a5a; --card: #f4f6f5; --border: #dde3e0; --hl: #fff7e0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fg: #eaeaea; --bg: #121212; --accent: #4cc38a; --accent-2: #6fb6d8;
+      --muted: #a0a0a0; --card: #1d211f; --border: #2e3532; --hl: #2a2618;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, sans-serif;
+         color: var(--fg); background: var(--bg); line-height: 1.6; }
+  main { max-width: 62rem; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .hero { padding: 3rem 0 1rem; }
+  .hero h1 { font-size: 2rem; margin: 0 0 .25rem; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { color: var(--muted); max-width: 46rem; }
+  nav.crumbs { padding-top: 1rem; font-size: .9rem; }
+  h2 { margin-top: 3rem; font-size: 1.4rem; border-bottom: 2px solid var(--accent);
+       display: inline-block; padding-bottom: .1rem; }
+  a { color: var(--accent-2); }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, monospace; font-size: .9em; }
+  .filetag { display: inline-block; font-family: ui-monospace, monospace; font-size: .78rem;
+             background: var(--card); border: 1px solid var(--border); border-radius: .35rem;
+             padding: .05rem .45rem; color: var(--accent-2); white-space: nowrap; }
+  .card { background: var(--card); border: 1px solid var(--border);
+          border-radius: .6rem; padding: 1rem 1.2rem; }
+
+  /* Architecture map */
+  .arch { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+          gap: .75rem; margin: 1.25rem 0; }
+  .svc { cursor: pointer; border: 1px solid var(--border); border-radius: .6rem;
+         padding: .7rem .9rem; background: var(--card); transition: border-color .15s; }
+  .svc:hover, .svc:focus-visible { border-color: var(--accent); }
+  .svc.active { border-color: var(--accent); background: var(--hl); }
+  .svc h3 { margin: 0; font-size: .95rem; }
+  .svc .port { color: var(--muted); font-size: .78rem; font-family: ui-monospace, monospace; }
+  #arch-detail { min-height: 5.5rem; }
+
+  /* Journey stepper */
+  .stepper { border: 1px solid var(--border); border-radius: .6rem; overflow: hidden;
+             margin: 1.25rem 0; }
+  .step-head { display: flex; align-items: center; gap: 1rem; padding: .7rem 1rem;
+               background: var(--card); border-bottom: 1px solid var(--border); }
+  .step-head .n { font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .step-head h3 { margin: 0; font-size: 1.05rem; flex: 1; }
+  .step-body { padding: 1rem 1.2rem; }
+  .step-body pre { background: var(--card); border: 1px solid var(--border);
+                   border-radius: .5rem; padding: .7rem .9rem; overflow-x: auto;
+                   font-size: .82rem; line-height: 1.45; }
+  .step-nav { display: flex; gap: .5rem; padding: 0 1rem 1rem; align-items: center; }
+  .step-nav .spacer { flex: 1; color: var(--muted); font-size: .85rem; text-align: center; }
+  .btn { display: inline-block; padding: .45rem .9rem; border-radius: .5rem;
+         background: var(--accent); color: #fff; border: none; font: inherit;
+         font-weight: 600; cursor: pointer; }
+  .btn[disabled] { opacity: .4; cursor: default; }
+  .dots { display: flex; gap: .35rem; justify-content: center; padding: .6rem 0 0; }
+  .dots button { width: .65rem; height: .65rem; border-radius: 50%; border: none;
+                 background: var(--border); cursor: pointer; padding: 0; }
+  .dots button.on { background: var(--accent); }
+
+  /* Model explorer */
+  .model-groups { display: grid; grid-template-columns: 1fr; gap: 1rem; margin: 1.25rem 0; }
+  .mgroup h3 { margin: .2rem 0 .5rem; font-size: .95rem; color: var(--muted);
+               text-transform: uppercase; letter-spacing: .04em; }
+  .mrow { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .mcard { cursor: pointer; border: 1px solid var(--border); border-radius: .5rem;
+           padding: .4rem .8rem; background: var(--card); font-weight: 600;
+           font-size: .9rem; transition: border-color .15s; }
+  .mcard:hover, .mcard:focus-visible { border-color: var(--accent); }
+  .mcard.active { border-color: var(--accent); background: var(--hl); }
+  #model-detail { margin-top: 1rem; }
+  #model-detail h3 { margin: 0 0 .2rem; }
+  #model-detail .why { border-left: 3px solid var(--accent); padding: .2rem .8rem;
+                       margin: .8rem 0; background: var(--hl); border-radius: 0 .4rem .4rem 0; }
+  #model-detail table { border-collapse: collapse; width: 100%; font-size: .85rem; margin: .6rem 0; }
+  #model-detail td { padding: .25rem .6rem .25rem 0; vertical-align: top;
+                     border-bottom: 1px solid var(--border); }
+  #model-detail td:first-child { font-family: ui-monospace, monospace; white-space: nowrap; }
+  .rel { display: inline-block; margin: .15rem .3rem .15rem 0; padding: .1rem .6rem;
+         border: 1px solid var(--accent-2); border-radius: 1rem; color: var(--accent-2);
+         font-size: .8rem; cursor: pointer; background: none; font-family: inherit; }
+  .rel:hover { background: var(--card); }
+
+  /* Dev loop */
+  .cmds { font-family: ui-monospace, monospace; font-size: .85rem; background: var(--card);
+          border: 1px solid var(--border); border-radius: .6rem; padding: 1rem 1.2rem;
+          overflow-x: auto; white-space: pre; line-height: 1.7; }
+  .cmds b { color: var(--accent); }
+  footer { color: var(--muted); font-size: .85rem; margin-top: 3rem;
+           border-top: 1px solid var(--border); padding-top: 1rem; }
+</style>
+</head>
+<body>
+<main>
+  <nav class="crumbs"><a href="index.html">← PleaseFix</a> · <a href="contribute.html">Contribute</a></nav>
+  <div class="hero">
+    <h1>How <span>PleaseFix</span> works</h1>
+    <p>An interactive walkthrough for developers: the moving parts, a
+    report's journey through the code, and every table in the data model —
+    each with the <em>why</em>, not just the <em>what</em>. Deeper rationale
+    lives in <span class="filetag" data-file="docs/DESIGN.md">docs/DESIGN.md</span>.</p>
+  </div>
+
+  <h2>1 · The moving parts</h2>
+  <p>One <code>docker compose up</code> is the whole stack — dev and
+  production have the same shape. Click a service.</p>
+  <div class="arch" id="arch"></div>
+  <div class="card" id="arch-detail">Click a service above.</div>
+
+  <h2>2 · A report's journey</h2>
+  <p>Follow one pothole from a citizen's browser to a public,
+  agency-tracked record. Use the buttons or ← → arrow keys.</p>
+  <div class="stepper" id="stepper">
+    <div class="step-head"><span class="n" id="step-n"></span><h3 id="step-title"></h3><span id="step-file"></span></div>
+    <div class="step-body" id="step-body"></div>
+    <div class="step-nav">
+      <button class="btn" id="prev">← Back</button>
+      <span class="spacer" id="step-count"></span>
+      <button class="btn" id="next">Next →</button>
+    </div>
+    <div class="dots" id="dots"></div>
+  </div>
+
+  <h2>3 · The data model</h2>
+  <p>Everything lives in
+  <span class="filetag" data-file="core/models.py">core/models.py</span>
+  (one file, on purpose — it <em>is</em> the domain). Click a model; the
+  outlined chips jump to related models. Tripwire tests in
+  <span class="filetag" data-file="core/tests/test_domain_model.py">core/tests/test_domain_model.py</span>
+  encode the invariants described here.</p>
+  <div class="model-groups" id="model-groups"></div>
+  <div class="card" id="model-detail">Click a model above.</div>
+
+  <h2>4 · The dev loop</h2>
+  <p>Setup once, then the seven-step gauntlet before every commit — CI
+  runs exactly this, in this order
+  (<span class="filetag" data-file=".github/workflows/ci.yml">.github/workflows/ci.yml</span>):</p>
+  <div class="cmds"><b># once</b>
+cp .env.example .env        # settings refuse to boot without env
+uv sync
+docker compose up -d db     # PostGIS (or the full stack: docker compose up)
+uv run python manage.py migrate && uv run python manage.py seed_sample_data
+uv run python manage.py runserver   # fails fast if migrations are pending
+
+<b># before every commit (this is CI)</b>
+uv run python manage.py compilemessages
+uv run ruff check . && uv run ruff format --check .
+uv run mypy .
+uv run lint-imports
+uv run pytest
+uv run python manage.py export_openapi_schema && git diff --exit-code api/openapi.json</div>
+  <p>Where to make your first change: the role-based tracks in
+  <a href="contribute.html">contribute.html</a> and the curated list in
+  <span class="filetag" data-file="docs/GOOD_FIRST_ISSUES.md">docs/GOOD_FIRST_ISSUES.md</span>.
+  Rules that bite (protected core, no new deps, i18n-from-day-one) are in
+  <span class="filetag" data-file="AGENTS.md">AGENTS.md</span> — they apply
+  to humans and AI agents alike.</p>
+
+  <footer>
+    <p>This page is a maintained artifact: <span class="filetag"
+    data-file="core/tests/test_dev_site.py">core/tests/test_dev_site.py</span>
+    fails CI if a core model is missing here or a referenced file moved.
+    Change the domain? Update this walkthrough in the same PR.</p>
+  </footer>
+</main>
+
+<script>
+"use strict";
+
+/* ---------------- architecture ---------------- */
+const SERVICES = [
+  {id:"caddy", name:"Caddy", port:":80 / :443",
+   what:"Reverse proxy with automatic TLS. Also serves the map's PMTiles as a static file (range requests) and proxies the S3 route — a known-good stanza, because aws-chunked uploads through naive proxies fail with SignatureDoesNotMatch.",
+   file:"Caddyfile"},
+  {id:"app", name:"app — Django 5 + HTMX", port:":8000",
+   what:"The reference client and the API in one process: server-rendered templates (vendored HTMX, no npm) and django-ninja under /api/v1/. Strict mypy, GeoDjango. In dev it runs the fail-fast runserver; in production, gunicorn.",
+   file:"config/settings.py"},
+  {id:"worker", name:"worker — Celery", port:"",
+   what:"Background jobs: notifications, image processing, dispatch. Same image as app, different command. Queue lives in Redis.",
+   file:"config/celery.py"},
+  {id:"db", name:"db — PostgreSQL + PostGIS", port:":5432",
+   what:"The single database. Spatial queries are first-class: point-in-polygon routing (which council covers this pothole?) is a WHERE clause, not a service. No polyglot persistence, ever.",
+   file:"compose.yaml"},
+  {id:"redis", name:"redis", port:":6379",
+   what:"Celery broker + shared cache. The abuse throttles live here — per-process caching would make rate limits ineffective across workers, which is why production refuses to boot without REDIS_URL.",
+   file:"core/abuse.py"},
+  {id:"s3", name:"versitygw — S3", port:":7070",
+   what:"Bundled S3 gateway (Apache-2.0) with a posix backend: photos are plain files on disk — rsync-able, recoverable without the gateway. The app speaks only dumb S3 (put/get/presign/delete) so any S3 works.",
+   file:"compose.yaml"},
+];
+const arch = document.getElementById("arch");
+const archDetail = document.getElementById("arch-detail");
+SERVICES.forEach(s => {
+  const el = document.createElement("button");
+  el.className = "svc"; el.type = "button";
+  el.innerHTML = `<h3>${s.name}</h3><span class="port">${s.port}</span>`;
+  el.addEventListener("click", () => {
+    arch.querySelectorAll(".svc").forEach(x => x.classList.remove("active"));
+    el.classList.add("active");
+    archDetail.innerHTML = `<strong>${s.name}</strong> — ${s.what}
+      <div style="margin-top:.4rem"><span class="filetag">${s.file}</span></div>`;
+  });
+  arch.appendChild(el);
+});
+
+/* ---------------- journey ---------------- */
+const STEPS = [
+  {t:"A citizen hits /report/", f:"core/views.py",
+   b:`<p>The web form is just an inbound channel — later channels
+   (WhatsApp, URL import already) feed the same intake. GET parameters
+   prefill the form, which is how the bookmarklet and the PWA
+   share-target import a complaint straight from social media.</p>
+   <pre>GET /report/?title=Pothole+at+SS2&source_url=https://reddit.com/...</pre>`},
+  {t:"Abuse checks — no login required", f:"core/abuse.py",
+   b:`<p>No account is needed to report, so abuse control is layered
+   instead: a honeypot field silently drops bots (they see success), and
+   per-IP throttles use <strong>salted IP hashes</strong> — raw IPs are
+   never stored (PDPA). Spam that gets through is handled by community
+   flags later, not by adding login friction here.</p>`},
+  {t:"create_report() — the only way issues are born", f:"core/models.py",
+   b:`<p>One manager method makes every issue, whatever the channel:</p>
+   <pre>issue, claim_token = Issue.objects.create_report(
+    title=..., description=..., longitude=..., latitude=...,
+    category=..., anonymous=..., source_channel="web", ...)</pre>
+   <p>It allocates the public ID (<code>PF-k7xq2mv</code> — random, no
+   enumeration), hashes the claim token, and <strong>snapshots the areas
+   covering the point</strong> — boundaries get redrawn, history must not.</p>`},
+  {t:"Routing: point → areas → bodies → categories", f:"core/models.py",
+   b:`<p><code>Category.objects.for_point(location)</code> returns what the
+   reporter can pick: the union of categories from <em>every</em> active
+   body whose area covers the point. Overlap (PBT + JKR + TNB at one
+   spot) is the normal case. Zero matches is accepted and marked, never
+   rejected — "we don't know who owns this yet" is honest data.</p>`},
+  {t:"The claim token — shown once, never stored", f:"core/models.py",
+   b:`<p>The response shows a one-time reporter secret. Only its salted
+   hash is stored. It proves "I am the original reporter" on follow-ups
+   (✓ badge) and later claims the report into an account — identity is
+   progressive: <strong>the report comes first</strong>, signup is
+   optional and later. Claimed reports are harder to flag-bomb
+   (threshold 5 vs 3).</p>`},
+  {t:"Public means public() — one gate for everything", f:"core/models.py",
+   b:`<p>Every list, map, page, and API response goes through
+   <code>Issue.objects.public()</code>, which excludes hidden (moderated),
+   unconfirmed, and non-public issues <em>at the database</em>. There is
+   no second visibility code path to forget.</p>
+   <pre>def public(self):
+    return self.filter(is_hidden=False, non_public=False,
+                       confirmed_at__isnull=False)</pre>`},
+  {t:"The conversation: updates, flags, auto-hide", f:"core/views.py",
+   b:`<p>Anyone can add a follow-up (<code>IssueUpdate</code>) — more
+   photos, "still broken", "contractor came". Anyone can flag abuse;
+   flags are deduped per submitter, and enough distinct flags
+   <strong>hide (never delete)</strong> the content pending human review.
+   An update can also carry the status transition it caused, so state
+   changes are public, attributed record entries.</p>`},
+  {t:"Filings: the community record vs agency tickets", f:"core/models.py",
+   b:`<p>Each official complaint is a <code>Filing</code> — one per
+   (issue, body), many per issue: <em>MPSJ: filed · Prasarana: filed ·
+   SISPAA: ref ADU-12345</em>. The agency closing its ticket updates
+   <strong>that filing only</strong>. The issue stays open until the
+   problem is actually fixed — that is the whole point of the platform
+   (see <a href="index.html">why</a>).</p>`},
+  {t:"The same story via the API", f:"api/v1.py",
+   b:`<p>The first-party app is just the reference client.
+   <code>/api/v1/issues</code> serves the identical public() data, and the
+   OpenAPI schema (<code>api/openapi.json</code>) is a reviewed artifact —
+   CI fails if the API surface changes without the schema diff being
+   committed. Build your own client against it.</p>`},
+];
+let step = 0;
+const stepN = document.getElementById("step-n"), stepT = document.getElementById("step-title"),
+      stepF = document.getElementById("step-file"), stepB = document.getElementById("step-body"),
+      stepC = document.getElementById("step-count"), dots = document.getElementById("dots"),
+      prev = document.getElementById("prev"), next = document.getElementById("next");
+STEPS.forEach((_, i) => {
+  const d = document.createElement("button");
+  d.addEventListener("click", () => { step = i; renderStep(); });
+  dots.appendChild(d);
+});
+function renderStep() {
+  const s = STEPS[step];
+  stepN.textContent = `Step ${step + 1}`;
+  stepT.textContent = s.t;
+  stepF.innerHTML = `<span class="filetag">${s.f}</span>`;
+  stepB.innerHTML = s.b;
+  stepC.textContent = `${step + 1} / ${STEPS.length}`;
+  prev.disabled = step === 0;
+  next.disabled = step === STEPS.length - 1;
+  dots.querySelectorAll("button").forEach((b, i) => b.classList.toggle("on", i === step));
+}
+prev.addEventListener("click", () => { if (step > 0) { step--; renderStep(); } });
+next.addEventListener("click", () => { if (step < STEPS.length - 1) { step++; renderStep(); } });
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft" && step > 0) { step--; renderStep(); }
+  if (e.key === "ArrowRight" && step < STEPS.length - 1) { step++; renderStep(); }
+});
+renderStep();
+
+/* ---------------- data model ----------------
+   Every concrete model in core/ must appear here with a data-model
+   attribute — core/tests/test_dev_site.py enforces it. */
+const MODELS = {
+  Area: {group:"Routing (jurisdictions are data, not code)",
+    why:"Point → areas → bodies is how a report finds its agencies. Boundaries get redrawn, so rows are versioned: a redraw creates new rows with a bumped generation and deactivates the old — historical issues keep their snapshot.",
+    fields:[["name, kind","state / district / council / other"],
+            ["boundary","MultiPolygon (SRID 4326) — point-in-polygon via covers"],
+            ["generation, is_active","boundary versioning"],
+            ["external_code","gov code, for imports"]],
+    rels:["Body","Issue"]},
+  Body: {group:"Routing (jurisdictions are data, not code)",
+    why:"An agency (PBT, JKR, TNB, Prasarana…). dispatch_email is the delivery floor — most Malaysian agencies are an inbox, and that's fine.",
+    fields:[["name, slug",""],["dispatch_email","email adapter floor; category can override"],
+            ["areas","M2M to Area — which ground it covers"],["is_active",""]],
+    rels:["Area","Category","Filing"]},
+  CategoryGroup: {group:"Routing (jurisdictions are data, not code)",
+    why:"Two-level dropdown. Malaysian PBT taxonomies are large; a flat list dies at ~30 entries.",
+    fields:[["name, order",""]], rels:["Category"]},
+  Category: {group:"Routing (jurisdictions are data, not code)",
+    why:"A per-body join, NOT a global taxonomy — unique on (body, name). The reporter sees the union across all bodies covering their point, because PBT + JKR + TNB overlap is the normal case. A global category table with one agency FK would not survive contact with reality.",
+    fields:[["body → Body","the join that matters"],
+            ["name, group","unique per body"],
+            ["state","confirmed / unconfirmed / inactive — unconfirmed holds dispatch; soft-delete only"],
+            ["dispatch_email","overrides the body's (one PBT: rubbish by email, roads via SISPAA)"],
+            ["photo_required, non_public, prefer_if_multiple","per-category behaviour flags"],
+            ["sispaa_category","mapping into the SISPAA taxonomy"],
+            ["extra_fields","typed extra-questions schema; answers land on Issue.extra_answers"]],
+    rels:["Body","CategoryGroup","Issue"]},
+  Tag: {group:"Routing (jurisdictions are data, not code)",
+    why:"Free-form community tags (a11y, CEDAW, public-transport). The advocacy/discovery axis, deliberately separate from routed categories — categories route to agencies, tags serve views like “all a11y issues in Subang”.",
+    fields:[["name","unique slug"]], rels:["Issue"]},
+
+  Issue: {group:"The report",
+    why:"The community's record, not any agency's ticket. Its status belongs to the platform and stays open until the problem is actually fixed — agencies close filings, never issues. Status types are a small closed set in code (invariants run on them); closure_reason and fixed_source qualify them, because “agency says fixed, community says not” is core data.",
+    fields:[["public_id","PF-k7xq2mv — random 7-char ID; no enumeration, no volume leak"],
+            ["title, description, location","PointField(geography)"],
+            ["status + closure_reason + fixed_source","open/fixed/closed + why + who says so"],
+            ["duplicate_of → Issue","dupes are a real FK: never dispatched; closing canonical notifies them"],
+            ["category → Category, tags, areas","routing + advocacy + area snapshot at intake"],
+            ["confirmed_at","report-first-verify-later; unconfirmed is invisible publicly"],
+            ["non_public","category-driven: dispatched but never shown (plate numbers, welfare)"],
+            ["anonymous, reporter_name","per-act display anonymity; name stays visible to staff"],
+            ["claim_token_hash, owner","progressive identity: secret shown once, claim into account later"],
+            ["source_channel, language, address","intake snapshots"],
+            ["ip_hash","salted — abuse tracing without storing PII"],
+            ["is_hidden","moderation: hide, never delete"]],
+    rels:["Category","Area","Tag","IssueUpdate","IssuePhoto","Filing","Flag","IssueLink","Subscription"]},
+  IssuePhoto: {group:"The report",
+    why:"Dated photos are the evidence trail — the accountability instrument official channels don't keep public.",
+    fields:[["issue → Issue",""],["image","stored via S3 (dev: local disk)"]], rels:["Issue"]},
+  IssueUpdate: {group:"The report",
+    why:"The public conversation: more evidence, “still broken”, “contractor came today”. An update can carry the status transition it caused — staff and verified-reporter state changes are public, attributed audit entries, free of charge.",
+    fields:[["issue → Issue",""],["text, author_name, photo",""],
+            ["new_status","the transition this update caused, if any"],
+            ["by_reporter","verified via the reporter secret or owning account — ✓ badge"],
+            ["is_hidden, ip_hash","same moderation + abuse model as issues"]],
+    rels:["Issue","Flag"]},
+  IssueLink: {group:"The report",
+    why:"Blocks/blocked-by between issues. Citizens have goals, not category codes: “I can't walk from A to B” is blocked by “no crossing at Y” and “lights out at Z” — each possibly a different agency. Government systems cannot represent this; we can.",
+    fields:[["blocker → Issue, blocked → Issue","unique pair, no self-links (DB constraints)"]],
+    rels:["Issue"]},
+
+  Filing: {group:"Accountability",
+    why:"One official filing with one body — many per issue, because cross-jurisdictional is the design. Carries the agency's reference number and THEIR status. Once dispatched, the agency system is system-of-record for that filing only: a filing closing never auto-closes the issue. Also records community-filed complaints, including free-text targets (“local councillor”).",
+    fields:[["issue → Issue, body → Body","body nullable — target_name for unmodeled targets"],
+            ["channel","email / sispaa / manual"],
+            ["status","recorded → queued → sent → acknowledged → in_progress → closed-by-agency (send-state ≠ issue status)"],
+            ["external_reference, external_status, last_synced_at","their ticket, their words"],
+            ["attempts, last_error","dispatch retry bookkeeping (framework owns retries)"]],
+    rels:["Issue","Body"]},
+  Flag: {group:"Accountability",
+    why:"“Report abuse” by anyone, no login. Deduped per submitter (salted IP hash, DB constraint); enough distinct flags auto-hide the content pending review — hidden, never deleted. Claimed/verified content needs 5 flags instead of 3: identity buys abuse resistance.",
+    fields:[["issue → Issue OR update → IssueUpdate","exactly one (check constraint)"],
+            ["ip_hash","unique per target per submitter"]],
+    rels:["Issue","IssueUpdate"]},
+  Subscription: {group:"Accountability",
+    why:"“Tell me when this changes.” Reporter auto-subscribe, area alerts via params later — the schema is generic now because retrofitting the entity under a live notification system is the expensive direction. Delivery machinery (dedup ledger, one-click unsubscribe) lands with notifications.",
+    fields:[["kind","issue / area"],["issue → Issue","for kind=issue (check constraint)"],
+            ["params","JSON — e.g. {lat, lon, radius_m} for area alerts"],
+            ["user / email / phone","whoever they are on the identity ladder"],
+            ["confirmed, unsubscribed_at",""]],
+    rels:["Issue"]},
+};
+const groupsEl = document.getElementById("model-groups");
+const modelDetail = document.getElementById("model-detail");
+const groups = {};
+Object.entries(MODELS).forEach(([name, m]) => {
+  (groups[m.group] = groups[m.group] || []).push(name);
+});
+Object.entries(groups).forEach(([g, names]) => {
+  const div = document.createElement("div");
+  div.className = "mgroup";
+  div.innerHTML = `<h3>${g}</h3>`;
+  const row = document.createElement("div");
+  row.className = "mrow";
+  names.forEach(n => {
+    const b = document.createElement("button");
+    b.className = "mcard"; b.type = "button";
+    b.textContent = n;
+    b.setAttribute("data-model", n);
+    b.addEventListener("click", () => showModel(n));
+    row.appendChild(b);
+  });
+  div.appendChild(row);
+  groupsEl.appendChild(div);
+});
+function showModel(name) {
+  const m = MODELS[name];
+  document.querySelectorAll(".mcard").forEach(x =>
+    x.classList.toggle("active", x.getAttribute("data-model") === name));
+  const rows = m.fields.map(([f, d]) => `<tr><td>${f}</td><td>${d}</td></tr>`).join("");
+  const rels = m.rels.map(r =>
+    `<button class="rel" data-goto="${r}">${r}</button>`).join(" ");
+  modelDetail.innerHTML = `<h3>${name}</h3>
+    <div class="why">${m.why}</div>
+    <table>${rows}</table>
+    <div><strong>Related:</strong> ${rels}</div>
+    <div style="margin-top:.5rem"><span class="filetag">core/models.py</span></div>`;
+  modelDetail.querySelectorAll(".rel").forEach(b =>
+    b.addEventListener("click", () => showModel(b.getAttribute("data-goto"))));
+}
+showModel("Issue");
+</script>
+</body>
+</html>
