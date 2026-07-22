@@ -1,0 +1,21 @@
+# Development overrides — `docker compose up` merges this file
+# automatically on top of compose.yaml: source is bind-mounted with
+# Django's auto-reloading dev server, so code edits apply instantly
+# (no image rebuild).
+#
+# Production deliberately skips this file:
+#   docker compose -f compose.yaml up -d
+
+services:
+  app:
+    command: sh -c "python manage.py compilemessages
+      && python manage.py migrate
+      && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    environment:
+      DEBUG: "true"
+
+  worker:
+    volumes:
+      - .:/app
