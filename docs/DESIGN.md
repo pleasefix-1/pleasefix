@@ -84,6 +84,15 @@ from code comments and other docs.
   failure reasons, resend.
 - Dev ergonomics: fake adapters (fake WhatsApp = a form in the dev UI;
   OTP prints to console) so contributors never need Meta verification.
+- **Import from a link, two ways.** Server-side import fetches a
+  Reddit/X/Facebook/web URL and prefills the report form (SSRF-guarded).
+  Because some platforms block server fetches (Reddit 403s datacenter
+  IPs) and a browser can't fetch them cross-origin either (CORS),
+  **browser-side import** runs in the reporter's own page context: a
+  bookmarklet scrapes the current page, and the installable PWA registers
+  as a share target — both deep-link into `/report/`'s query-param
+  prefill. This dodges the block, uses the reporter's IP/login, and
+  removes the server-fetch/SSRF surface for those paths.
 
 ## 6. Outbound dispatch — no existing gov integrations assumed
 
