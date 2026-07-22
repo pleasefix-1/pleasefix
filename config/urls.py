@@ -14,6 +14,7 @@ urlpatterns = [
     path("issues/", views.issue_list, name="issue_list"),
     path("issues/<slug:public_id>/", views.issue_detail, name="issue_detail"),
     path("issues/<slug:public_id>/update/", views.update_new, name="update_new"),
+    path("issues/<slug:public_id>/claim/", views.issue_claim, name="issue_claim"),
     path("issues/<slug:public_id>/flag/", views.issue_flag, name="issue_flag"),
     path("updates/<int:update_id>/flag/", views.update_flag, name="update_flag"),
     path("i/<slug:public_id>", views.issue_shortlink, name="issue_shortlink"),

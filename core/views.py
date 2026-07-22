@@ -10,8 +10,15 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from core import abuse, importers
-from core.forms import ImportForm, IssueForm, UpdateForm
-from core.models import Flag, Issue, IssuePhoto, IssueUpdate
+from core.forms import ClaimForm, ImportForm, IssueForm, UpdateForm
+from core.models import (
+    Flag,
+    Issue,
+    IssuePhoto,
+    IssueUpdate,
+    generate_claim_token,
+    hash_claim_token,
+)
 
 THROTTLE_MESSAGE = _("Too many submissions from your connection — please try again later.")
 
@@ -34,6 +41,7 @@ def report_new(request: HttpRequest) -> HttpResponse:
             if abuse.throttled(request, "report", limit=5):
                 form.add_error(None, THROTTLE_MESSAGE)
                 return render(request, "issues/report_new.html", {"form": form})
+            claim_token = generate_claim_token()
             issue = Issue.objects.create(
                 title=form.cleaned_data["title"],
                 description=form.cleaned_data["description"],
@@ -43,6 +51,8 @@ def report_new(request: HttpRequest) -> HttpResponse:
                 reporter_name=form.cleaned_data["reporter_name"],
                 source_url=form.cleaned_data["source_url"],
                 ip_hash=abuse.ip_hash(request),
+                claim_token_hash=hash_claim_token(claim_token),
+                owner=request.user if request.user.is_authenticated else None,
             )
             if form.cleaned_data["photo"]:
                 IssuePhoto.objects.create(issue=issue, image=form.cleaned_data["photo"])
@@ -51,6 +61,8 @@ def report_new(request: HttpRequest) -> HttpResponse:
                 if downloaded is not None:
                     name, content = downloaded
                     IssuePhoto.objects.create(issue=issue, image=ContentFile(content, name=name))
+            # Shown once on the issue page; never stored raw.
+            request.session[f"claim_secret_{issue.public_id}"] = claim_token
             return redirect(issue)
     else:
         form = IssueForm(initial=request.session.pop("import_initial", None))
@@ -98,22 +110,28 @@ def issue_list(request: HttpRequest) -> HttpResponse:
     return render(request, "issues/list.html", {"issues": issues})
 
 
-def issue_detail(request: HttpRequest, public_id: str) -> HttpResponse:
-    issue = get_object_or_404(Issue.public().prefetch_related("photos"), public_id=public_id)
+def _detail_context(request: HttpRequest, issue: Issue, form: UpdateForm) -> dict[str, object]:
     share_url = request.build_absolute_uri(f"/i/{issue.public_id}")
     share_text = f"{issue.title} ({issue.reference_code})"
-    return render(
-        request,
-        "issues/detail.html",
-        {
-            "issue": issue,
-            "updates": issue.updates.filter(is_hidden=False),
-            "update_form": UpdateForm(),
-            "share_url": share_url,
-            "share_text": share_text,
-            "share_quoted": quote(f"{share_text} {share_url}"),
-        },
-    )
+    is_owner = request.user.is_authenticated and issue.owner_id == request.user.pk
+    return {
+        "issue": issue,
+        "updates": issue.updates.filter(is_hidden=False),
+        "update_form": form,
+        "share_url": share_url,
+        "share_text": share_text,
+        "share_quoted": quote(f"{share_text} {share_url}"),
+        "is_owner": is_owner,
+        "can_claim": request.user.is_authenticated and not issue.is_claimed,
+        "claim_form": ClaimForm(),
+        # One-time banner right after reporting: the secret + login CTA.
+        "new_claim_secret": request.session.pop(f"claim_secret_{issue.public_id}", None),
+    }
+
+
+def issue_detail(request: HttpRequest, public_id: str) -> HttpResponse:
+    issue = get_object_or_404(Issue.public().prefetch_related("photos"), public_id=public_id)
+    return render(request, "issues/detail.html", _detail_context(request, issue, UpdateForm()))
 
 
 @require_POST
@@ -127,27 +145,42 @@ def update_new(request: HttpRequest, public_id: str) -> HttpResponse:
         if abuse.throttled(request, "update", limit=10):
             messages.error(request, THROTTLE_MESSAGE)
             return redirect(issue)
+        by_reporter = bool(request.user.is_authenticated and issue.owner_id == request.user.pk)
+        secret = form.cleaned_data["reporter_secret"]
+        if secret and not by_reporter:
+            if issue.check_claim(secret):
+                by_reporter = True
+            else:
+                form.add_error("reporter_secret", _("That secret doesn't match this report."))
+                return render(request, "issues/detail.html", _detail_context(request, issue, form))
         IssueUpdate.objects.create(
             issue=issue,
             text=form.cleaned_data["text"],
             author_name=form.cleaned_data["author_name"],
             photo=form.cleaned_data["photo"] or "",
+            by_reporter=by_reporter,
             ip_hash=abuse.ip_hash(request),
         )
         messages.success(request, _("Update added — thank you."))
         return redirect(issue)
-    return render(
-        request,
-        "issues/detail.html",
-        {
-            "issue": issue,
-            "updates": issue.updates.filter(is_hidden=False),
-            "update_form": form,
-            "share_url": request.build_absolute_uri(f"/i/{issue.public_id}"),
-            "share_text": issue.title,
-            "share_quoted": quote(issue.title),
-        },
-    )
+    return render(request, "issues/detail.html", _detail_context(request, issue, form))
+
+
+@require_POST
+def issue_claim(request: HttpRequest, public_id: str) -> HttpResponse:
+    """Attach an anonymous report to the logged-in account, proven by the
+    reporter secret. Claimed reports earn a higher flag threshold."""
+    issue = get_object_or_404(Issue.public(), public_id=public_id)
+    if not request.user.is_authenticated:
+        return redirect(f"/accounts/login/?next={issue.get_absolute_url()}")
+    form = ClaimForm(request.POST)
+    if form.is_valid() and not issue.is_claimed and issue.check_claim(form.cleaned_data["secret"]):
+        issue.owner = request.user
+        issue.save(update_fields=["owner"])
+        messages.success(request, _("Report claimed — it's now linked to your account."))
+    else:
+        messages.error(request, _("That secret doesn't match this report."))
+    return redirect(issue)
 
 
 def _flag(request: HttpRequest, **target: object) -> None:
@@ -166,7 +199,7 @@ def _flag(request: HttpRequest, **target: object) -> None:
 def issue_flag(request: HttpRequest, public_id: str) -> HttpResponse:
     issue = get_object_or_404(Issue.public(), public_id=public_id)
     _flag(request, issue=issue)
-    if issue.flags.count() >= Flag.AUTO_HIDE_THRESHOLD:
+    if issue.flags.count() >= issue.flag_threshold:
         issue.is_hidden = True
         issue.save(update_fields=["is_hidden"])
         return redirect("issue_list")
@@ -176,8 +209,9 @@ def issue_flag(request: HttpRequest, public_id: str) -> HttpResponse:
 @require_POST
 def update_flag(request: HttpRequest, update_id: int) -> HttpResponse:
     update = get_object_or_404(IssueUpdate.objects.filter(is_hidden=False), pk=update_id)
+    threshold = Flag.CLAIMED_HIDE_THRESHOLD if update.by_reporter else Flag.AUTO_HIDE_THRESHOLD
     _flag(request, update=update)
-    if update.flags.count() >= Flag.AUTO_HIDE_THRESHOLD:
+    if update.flags.count() >= threshold:
         update.is_hidden = True
         update.save(update_fields=["is_hidden"])
     return redirect(update.issue)

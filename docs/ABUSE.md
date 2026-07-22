@@ -25,6 +25,7 @@ document describes what exists now and where it goes.
 | Floods | Per-IP fixed-window throttles: reports 5/h, updates 10/h, flags 30/h, imports 10/h (cache-backed: Redis in compose, locmem in dev) | `core/abuse.py`, views |
 | Bad content | "Report abuse" on every issue and update, no login; flags deduped per IP-hash; **3 distinct flags auto-hides** pending review | `Flag` model, flag views |
 | Review | Admin: hidden filters, unhide action, flag list; hidden content excluded from all public queries via `Issue.public()` | `core/admin.py` |
+| Trust | **Reporter secret** issued once per report (stored salted-hashed): verifies follow-ups ("✓ original reporter" badge) and claims the report into an account after login. Claimed reports and verified updates need 5 flags to auto-hide instead of 3 — verified identity buys flag-bomb resistance | `Issue.claim_token_hash/owner`, `core/views.py` |
 | SSRF | URL-import fetches: http(s) only, public addresses only, checked per redirect hop, size caps | `core/importers.py` |
 
 ## Known gaps / next steps (roughly in order)
@@ -40,8 +41,9 @@ document describes what exists now and where it goes.
    immunity until re-reviewed by staff.
 3. **Geo-targeted CAPTCHA** (Turnstile) for non-MY connections only —
    zero friction domestically, kills offshore comment spam.
-4. **Progressive identity as the real backstop**: phone/email
-   verification unlocks higher limits; unverified submissions become
+4. **Progressive identity as the real backstop**: the reporter-secret →
+   claim flow is the first rung (done); next, phone/email verification
+   unlocks higher limits and unverified submissions become
    `unconfirmed` (invisible until a confirm-click) once notifications
    land. Verification cost is the durable anti-abuse currency.
 5. **Moderation snapshots**: staff edits preserve original content with

@@ -49,9 +49,38 @@
   form.flag { display: inline; }
   form.flag button { background: none; border: none; color: var(--muted); font-size: .8rem;
     cursor: pointer; text-decoration: underline; padding: 0; font-family: inherit; }
+  .secretbox { border: 2px solid var(--accent); border-radius: .6rem;
+    padding: 1rem 1.2rem; margin: 1rem 0; background: var(--card); }
+  .secretbox code { font-size: 1.3rem; font-weight: 700; letter-spacing: .08em; }
+  .badge { display: inline-block; border-radius: 999px; padding: 0 .55rem;
+    font-size: .78rem; font-weight: 700; color: var(--bg); background: var(--accent); }
+  .claim { margin: 1rem 0; font-size: .95rem; }
+  .claim input { padding: .35rem .5rem; font: inherit; border: 1px solid var(--border);
+    border-radius: .4rem; background: var(--bg); color: var(--fg); }
+  .claim button { padding: .35rem .8rem; font: inherit; border: 1px solid var(--accent);
+    border-radius: .4rem; background: transparent; color: var(--accent); cursor: pointer; }
+  details.secretfield summary { color: var(--muted); font-size: .9rem; cursor: pointer;
+    margin-top: .8rem; }
 </style>
 <div class="issue">
   <p><a href="{% url 'issue_list' %}">← {% translate "All issues" %}</a></p>
+
+  {% if new_claim_secret %}
+    <div class="secretbox">
+      <p><strong>{% translate "Your report is live. Save your reporter secret:" %}</strong></p>
+      <p><code>{{ new_claim_secret }}</code></p>
+      <p>{% blocktranslate %}This is shown only once. Use it to post
+      verified follow-ups as the original reporter, or to claim this
+      report into an account later.{% endblocktranslate %}
+      {% if not user.is_authenticated %}
+        <a href="/accounts/signup/?next={{ issue.get_absolute_url }}">{% translate "Create an account" %}</a>
+        {% translate "or" %}
+        <a href="/accounts/login/?next={{ issue.get_absolute_url }}">{% translate "log in" %}</a>
+        {% translate "to keep track of your reports." %}
+      {% endif %}</p>
+    </div>
+  {% endif %}
+
   <h1>{{ issue.title }}</h1>
   <p class="meta">
     <span class="status {{ issue.status }}">{{ issue.get_status_display }}</span>
@@ -63,7 +92,23 @@
     {% if issue.source_url %}
       · <a href="{{ issue.source_url }}" rel="noopener">{% translate "original post" %}</a>
     {% endif %}
+    {% if issue.is_claimed %}
+      · <span class="badge">{% translate "claimed" %}</span>
+    {% endif %}
   </p>
+
+  {% if is_owner %}
+    <p class="claim">{% blocktranslate %}You reported this — your updates
+    below are automatically verified.{% endblocktranslate %}</p>
+  {% elif can_claim %}
+    <form class="claim" method="post" action="{% url 'issue_claim' issue.public_id %}">
+      {% csrf_token %}
+      <label>{% blocktranslate %}Your report? Claim it with your reporter
+      secret:{% endblocktranslate %}
+      {{ claim_form.secret }}</label>
+      <button type="submit">{% translate "Claim" %}</button>
+    </form>
+  {% endif %}
   <p>{{ issue.description|linebreaks }}</p>
   {% if issue.photos.all %}
     <div class="photos">
@@ -83,6 +128,7 @@
       <div class="update" id="update-{{ update.pk }}">
         <p class="who">
           {% if update.author_name %}{{ update.author_name }}{% else %}{% translate "Anonymous" %}{% endif %}
+          {% if update.by_reporter %}<span class="badge">✓ {% translate "original reporter" %}</span>{% endif %}
           · {{ update.created_at|date:"j M Y, H:i" }}
           · <form class="flag" method="post" action="{% url 'update_flag' update.pk %}">{% csrf_token %}
               <button type="submit">{% translate "report abuse" %}</button></form>
@@ -102,6 +148,14 @@
       {{ update_form.text.label_tag }}{{ update_form.text }}{{ update_form.text.errors }}
       {{ update_form.photo.label_tag }}{{ update_form.photo }}{{ update_form.photo.errors }}
       {{ update_form.author_name.label_tag }}{{ update_form.author_name }}{{ update_form.author_name.errors }}
+      {% if not is_owner %}
+        <details class="secretfield" {% if update_form.reporter_secret.errors %}open{% endif %}>
+          <summary>{% translate "Are you the original reporter?" %}</summary>
+          {{ update_form.reporter_secret.label_tag }}{{ update_form.reporter_secret }}
+          <p class="who">{{ update_form.reporter_secret.help_text }}</p>
+          {{ update_form.reporter_secret.errors }}
+        </details>
+      {% endif %}
       <button type="submit">{% translate "Post update" %}</button>
     </form>
   </div>

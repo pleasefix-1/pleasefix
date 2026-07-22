@@ -68,6 +68,23 @@ class UpdateForm(HoneypotMixin, forms.Form):
     author_name = forms.CharField(
         label=_("Your name (optional, shown publicly)"), max_length=100, required=False
     )
+    reporter_secret = forms.CharField(
+        label=_("Reporter secret (optional)"),
+        max_length=40,
+        required=False,
+        help_text=_(
+            "If you're the original reporter, paste the secret you were "
+            "given — your update gets a verified badge."
+        ),
+    )
+
+
+class ClaimForm(forms.Form):
+    secret = forms.CharField(
+        label=_("Reporter secret"),
+        max_length=40,
+        widget=forms.TextInput(attrs={"placeholder": "e.g. x7km2p9qw4ne"}),
+    )
 
 
 class ImportForm(forms.Form):

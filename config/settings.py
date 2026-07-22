@@ -120,6 +120,11 @@ AUTHENTICATION_BACKENDS = [
 SITE_ID = 1
 SITE_NAME = env("SITE_NAME")
 
+# Progressive identity: accounts are optional; reports come first.
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+ACCOUNT_EMAIL_VERIFICATION = "optional"
+
 # i18n: BM + EN from day one (docs/DESIGN.md — bilingual or never dig out).
 LANGUAGE_CODE = env("LANGUAGE_CODE")
 LANGUAGES = [("ms", "Bahasa Melayu"), ("en", "English")]
