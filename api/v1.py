@@ -27,6 +27,13 @@ class VersionOut(Schema):
     api_version: str
 
 
+class UpdateOut(Schema):
+    text: str
+    author_name: str
+    photo: str | None
+    created_at: datetime
+
+
 class IssueOut(Schema):
     id: str
     reference_code: str
@@ -39,6 +46,7 @@ class IssueOut(Schema):
     source_url: str
     created_at: datetime
     photos: list[str]
+    updates: list[UpdateOut]
 
 
 def _issue_out(issue: Issue) -> IssueOut:
@@ -54,6 +62,16 @@ def _issue_out(issue: Issue) -> IssueOut:
         source_url=issue.source_url,
         created_at=issue.created_at,
         photos=[p.image.url for p in issue.photos.all()],
+        updates=[
+            UpdateOut(
+                text=u.text,
+                author_name=u.author_name,
+                photo=u.photo.url if u.photo else None,
+                created_at=u.created_at,
+            )
+            for u in issue.updates.all()
+            if not u.is_hidden
+        ],
     )
 
 
@@ -64,11 +82,11 @@ def version(request: HttpRequest) -> VersionOut:
 
 @api_v1.get("/issues", response=list[IssueOut], summary="List issues (newest first)")
 def list_issues(request: HttpRequest) -> list[IssueOut]:
-    return [_issue_out(i) for i in Issue.objects.prefetch_related("photos")[:100]]
+    return [_issue_out(i) for i in Issue.public().prefetch_related("photos", "updates")[:100]]
 
 
 @api_v1.get("/issues/{issue_id}", response=IssueOut, summary="Get one issue by its public ID")
 def get_issue(request: HttpRequest, issue_id: str) -> IssueOut:
     return _issue_out(
-        get_object_or_404(Issue.objects.prefetch_related("photos"), public_id=issue_id)
+        get_object_or_404(Issue.public().prefetch_related("photos", "updates"), public_id=issue_id)
     )

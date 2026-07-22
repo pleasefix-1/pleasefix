@@ -50,6 +50,13 @@
           "title": {
             "title": "Title",
             "type": "string"
+          },
+          "updates": {
+            "items": {
+              "$ref": "#/components/schemas/UpdateOut"
+            },
+            "title": "Updates",
+            "type": "array"
           }
         },
         "required": [
@@ -63,9 +70,46 @@
           "reporter_name",
           "source_url",
           "created_at",
-          "photos"
+          "photos",
+          "updates"
         ],
         "title": "IssueOut",
+        "type": "object"
+      },
+      "UpdateOut": {
+        "properties": {
+          "author_name": {
+            "title": "Author Name",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "photo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "author_name",
+          "photo",
+          "created_at"
+        ],
+        "title": "UpdateOut",
         "type": "object"
       },
       "VersionOut": {
