@@ -9,11 +9,16 @@ breaking changes only in a future /api/v2. See docs/DESIGN.md §7.
 
 from datetime import datetime
 
+from django.db.models import Prefetch
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI, Schema
 
-from core.models import Issue
+from core.models import Issue, IssueUpdate
+
+# Only public (non-hidden) updates are serialized — filter at the DB, not
+# in Python, so hidden rows are never fetched.
+_PUBLIC_UPDATES = Prefetch("updates", queryset=IssueUpdate.objects.public())
 
 api_v1 = NinjaAPI(
     title="PleaseFix API",
@@ -73,8 +78,8 @@ def _issue_out(issue: Issue) -> IssueOut:
                 photo=u.photo.url if u.photo else None,
                 created_at=u.created_at,
             )
+            # `updates` is prefetched to the public() queryset by the views.
             for u in issue.updates.all()
-            if not u.is_hidden
         ],
     )
 
@@ -86,11 +91,11 @@ def version(request: HttpRequest) -> VersionOut:
 
 @api_v1.get("/issues", response=list[IssueOut], summary="List issues (newest first)")
 def list_issues(request: HttpRequest) -> list[IssueOut]:
-    return [_issue_out(i) for i in Issue.public().prefetch_related("photos", "updates")[:100]]
+    qs = Issue.objects.public().prefetch_related("photos", _PUBLIC_UPDATES)
+    return [_issue_out(i) for i in qs[:100]]
 
 
 @api_v1.get("/issues/{issue_id}", response=IssueOut, summary="Get one issue by its public ID")
 def get_issue(request: HttpRequest, issue_id: str) -> IssueOut:
-    return _issue_out(
-        get_object_or_404(Issue.public().prefetch_related("photos", "updates"), public_id=issue_id)
-    )
+    qs = Issue.objects.public().prefetch_related("photos", _PUBLIC_UPDATES)
+    return _issue_out(get_object_or_404(qs, public_id=issue_id))
