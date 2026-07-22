@@ -8,7 +8,7 @@
   .about .lede { font-size: 1.15rem; color: var(--muted); }
   .quote { border-left: 4px solid var(--accent); padding: .4rem 1rem;
            margin: 1.5rem 0; font-size: 1.1rem; font-style: italic; }
-  .card { border: 1px solid var(--muted); border-radius: .6rem;
+  .card { border: 1px solid var(--border); border-radius: .6rem;
           padding: 1rem 1.2rem; margin: .8rem 0; }
   /* Scenario stepper */
   .lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
@@ -19,7 +19,7 @@
   .step { padding: .45rem .6rem; border-radius: .4rem; margin: .35rem 0;
           border: 1px solid transparent; }
   .step .who { font-weight: 600; }
-  .step.closed { color: #b3423a; }
+  .step.closed { color: var(--danger); }
   .step.open { color: var(--accent); }
   .js-on .step[hidden] { display: none; }
   .step.now { border-color: var(--accent); background: rgba(76,195,138,.08); }
@@ -28,21 +28,21 @@
   .stepper-controls button { padding: .45rem 1rem; border-radius: .4rem;
       border: 1px solid var(--accent); background: transparent;
       color: var(--accent); font: inherit; cursor: pointer; }
-  .stepper-controls button.primary { background: var(--accent); color: #fff; }
+  .stepper-controls button.primary { background: var(--accent); color: var(--bg); }
   .stepper-controls button:disabled { opacity: .4; cursor: default; }
   .day { color: var(--muted); font-size: .85rem; min-width: 5.5rem; display: inline-block; }
   /* Dependency demo */
-  .deptree { border: 1px solid var(--muted); border-radius: .6rem; padding: 1rem 1.2rem; }
+  .deptree { border: 1px solid var(--border); border-radius: .6rem; padding: 1rem 1.2rem; }
   .deptree .main { font-weight: 700; margin-bottom: .6rem; }
   .deptree label { display: block; margin: .4rem 0 .4rem 1.5rem; cursor: pointer; }
   .deptree .state { font-weight: 600; }
-  .deptree .state.blocked { color: #b3423a; }
+  .deptree .state.blocked { color: var(--danger); }
   .deptree .state.ready { color: var(--accent); }
-  details { margin: .6rem 0; border: 1px solid var(--muted); border-radius: .6rem;
+  details { margin: .6rem 0; border: 1px solid var(--border); border-radius: .6rem;
             padding: .6rem 1rem; }
   details summary { cursor: pointer; font-weight: 600; }
   details[open] summary { color: var(--accent); }
-  .pill { display: inline-block; border: 1px solid var(--muted); border-radius: 999px;
+  .pill { display: inline-block; border: 1px solid var(--border); border-radius: 999px;
           padding: .05rem .6rem; font-size: .85rem; margin: .1rem .15rem; }
 </style>
 
