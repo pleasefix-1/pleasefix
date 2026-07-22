@@ -1,0 +1,12 @@
+# Normalize to LF in the repo and on checkout — protects Windows clones
+# (core.autocrlf=true would otherwise break shell scripts and file
+# hashes inside the Linux containers).
+* text=auto eol=lf
+
+# Binary — never touch.
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.mo binary
+*.pmtiles binary

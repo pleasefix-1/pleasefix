@@ -24,6 +24,12 @@ cp .env.example .env
 docker compose up --build
 ```
 
+On **Windows**? Follow the from-scratch guide:
+[docs/ONBOARDING-WINDOWS.md](docs/ONBOARDING-WINDOWS.md) (WSL2 + Docker
+Desktop, or a one-click VS Code Dev Container). In development the
+stack auto-reloads on code edits (`compose.override.yaml`); production
+runs `docker compose -f compose.yaml up -d` to skip the dev overrides.
+
 - App: http://localhost:8000 (also via Caddy on :80)
 - API + interactive docs: http://localhost:8000/api/v1/docs
 - Health: http://localhost:8000/healthz

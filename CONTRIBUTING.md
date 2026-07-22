@@ -65,7 +65,11 @@ separate CLA to sign). Never copy code from AGPL/GPL projects
 
 ## Dev environment
 
-`docker compose up --build` is the entire stack. Fake adapters keep
-development self-contained: OTP prints to the console, no Meta/WhatsApp
-business verification ever needed for local work. See README for the
-non-Docker path.
+`docker compose up --build` is the entire stack, with live reload in
+development (source is bind-mounted; edits apply instantly). A VS Code
+Dev Container is included (`.devcontainer/`) — "Reopen in Container"
+gives you the stack plus ruff/mypy/pytest pre-wired. Windows developers:
+start from [docs/ONBOARDING-WINDOWS.md](docs/ONBOARDING-WINDOWS.md).
+Fake adapters keep development self-contained: OTP prints to the
+console, no Meta/WhatsApp business verification ever needed for local
+work. See README for the non-Docker path.
