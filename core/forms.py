@@ -35,3 +35,15 @@ class IssueForm(forms.Form):
     reporter_name = forms.CharField(
         label=_("Your name (optional, shown publicly)"), max_length=100, required=False
     )
+    # Carried through the URL-import flow (hidden; see core.importers).
+    source_url = forms.URLField(required=False, widget=forms.HiddenInput())
+    photo_url = forms.URLField(required=False, widget=forms.HiddenInput())
+
+
+class ImportForm(forms.Form):
+    url = forms.URLField(
+        label=_("Link to import"),
+        widget=forms.URLInput(
+            attrs={"placeholder": "https://www.reddit.com/r/malaysia/comments/…"}
+        ),
+    )

@@ -25,9 +25,18 @@
   <p class="help">
     {% blocktranslate %}No account needed. The report is public from the
     moment you submit it.{% endblocktranslate %}
+    <a href="{% url 'report_import' %}">{% translate "Import from a link instead (Reddit, X, Facebook…)" %}</a>
   </p>
+  {% if form.initial.source_url %}
+    <p class="help">
+      {% blocktranslate with url=form.initial.source_url %}Prefilled from
+      <a href="{{ url }}" rel="noopener">{{ url }}</a> — review, add the
+      location, then submit.{% endblocktranslate %}
+    </p>
+  {% endif %}
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    {{ form.source_url }}{{ form.photo_url }}
     <div class="field">
       {{ form.title.label_tag }}{{ form.title }}{{ form.title.errors }}
     </div>
