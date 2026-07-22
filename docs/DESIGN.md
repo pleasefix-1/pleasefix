@@ -165,9 +165,51 @@ user-facing strings go through gettext; notifications render in the
 reporter's language; admin-editable config data (category and agency
 names) gets its own translation strategy.
 
-## 10. Next design steps
+## 10. Domain model
 
-The detailed domain model (issues, updates, agencies, categories,
-filings, dependencies, states, moderation) is the next design session;
-`core/models.py` stays empty until it lands. A public gap analysis
-against 15 years of FixMyStreet production experience informs it.
+Drafted 2026-07-22 (`core/models.py`), informed by a gap analysis
+against 15 years of FixMyStreet production experience. The shapes that
+are expensive to retrofit are in from the start:
+
+- **Routing is area-mediated and per-body.** `Area` (versioned
+  boundaries — redraws bump a generation, old rows stay for history)
+  ⟂ `Body` (agency) ⟂ `Category`. A category is a *per-body join*
+  (unique on body+name), never a global taxonomy: the reporter sees the
+  union of categories from every body covering the point — PBT + JKR +
+  TNB overlap is the normal case. Per-category flags: dispatch-email
+  override, `photo_required`, `non_public`, `prefer_if_multiple`,
+  `sispaa_category`, and a typed extra-questions schema. Unconfirmed
+  categories hold dispatch; categories are soft-deleted only.
+- **Filings are per-(issue, body), many per issue.** A `Filing` carries
+  the channel, the agency's reference number and *their* status, and
+  dispatch retry bookkeeping. A filing closing never auto-closes the
+  issue. Filings also record community-filed parallel complaints,
+  including free-text targets not modeled as bodies ("local
+  councillor"). Zero matched bodies is accepted and marked, never
+  rejected.
+- **Issue lifecycle**: a small closed set of status types in code
+  (open/fixed/closed — invariants run on these), qualified by a closure
+  reason and fix provenance (reporter/community/staff/agency — the
+  "agency says fixed, community says not" case is core data).
+  Duplicates are a real FK to the canonical issue. `confirmed_at`
+  supports report-first-verify-later; unconfirmed, hidden, and
+  non-public issues never appear in public queries. Per-act display
+  anonymity is separate from auth. Intake snapshots the source channel,
+  language, geocoded address, and covering areas.
+- **Updates are the audit trail**: a follow-up can carry the status
+  transition it caused (`new_status`), so staff and verified-reporter
+  state changes are public, attributed record entries. Reopening a
+  closed issue is a transition by the verified reporter or staff;
+  follow-ups themselves are always allowed, on any status.
+- **Dependencies and tags**: blocks/blocked-by links between issues
+  ("can't walk A→B" aggregates its blockers), and free-form community
+  tags (a11y, CEDAW…) alongside the routed categories.
+- **Subscriptions** exist as schema (issue-follow now, area alerts via
+  parameters later); delivery machinery comes with notifications.
+- **Reply path is via the platform**: dispatch email uses a platform
+  Reply-To so agency replies parse back into the record; the citizen's
+  address is never exposed to agencies.
+
+Still ahead (tracked, deliberately not schema yet): moderation
+snapshots/audit log, abuse ban lists, scoped tokens, questionnaires,
+response templates, category-name i18n.
