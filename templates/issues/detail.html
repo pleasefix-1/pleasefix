@@ -33,6 +33,22 @@
     font-size: .9rem; border: 1px solid var(--border); border-radius: 999px;
     text-decoration: none; background: var(--card); color: var(--fg); cursor: pointer; }
   .share a:hover, .share button:hover { border-color: var(--accent); }
+  .updates { margin-top: 2rem; }
+  .update { border-left: 3px solid var(--border); padding: .3rem 0 .3rem 1rem;
+    margin: .9rem 0; }
+  .update .who { color: var(--muted); font-size: .85rem; }
+  .update img { max-width: 12rem; max-height: 12rem; border-radius: .4rem; display: block;
+    margin-top: .4rem; }
+  .updates form.add textarea, .updates form.add input[type=text] { width: 100%;
+    max-width: 34rem; padding: .5rem .6rem; font: inherit; border: 1px solid var(--border);
+    border-radius: .4rem; background: var(--bg); color: var(--fg); }
+  .updates form.add label { display: block; font-weight: 600; margin: .8rem 0 .25rem; }
+  .updates form.add button { margin-top: .8rem; padding: .5rem 1rem; font: inherit;
+    font-weight: 700; border: 1px solid var(--accent); border-radius: .45rem;
+    background: var(--accent); color: var(--bg); cursor: pointer; }
+  form.flag { display: inline; }
+  form.flag button { background: none; border: none; color: var(--muted); font-size: .8rem;
+    cursor: pointer; text-decoration: underline; padding: 0; font-family: inherit; }
 </style>
 <div class="issue">
   <p><a href="{% url 'issue_list' %}">← {% translate "All issues" %}</a></p>
@@ -61,6 +77,35 @@
     — <a href="https://www.openstreetmap.org/?mlat={{ issue.latitude }}&mlon={{ issue.longitude }}#map=18/{{ issue.latitude }}/{{ issue.longitude }}"
          rel="noopener">{% translate "view on OpenStreetMap" %}</a>
   </div>
+  <div class="updates">
+    <h2>{% blocktranslate count n=updates|length %}{{ n }} update{% plural %}{{ n }} updates{% endblocktranslate %}</h2>
+    {% for update in updates %}
+      <div class="update" id="update-{{ update.pk }}">
+        <p class="who">
+          {% if update.author_name %}{{ update.author_name }}{% else %}{% translate "Anonymous" %}{% endif %}
+          · {{ update.created_at|date:"j M Y, H:i" }}
+          · <form class="flag" method="post" action="{% url 'update_flag' update.pk %}">{% csrf_token %}
+              <button type="submit">{% translate "report abuse" %}</button></form>
+        </p>
+        <p>{{ update.text|linebreaksbr }}</p>
+        {% if update.photo %}<a href="{{ update.photo.url }}"><img src="{{ update.photo.url }}" alt=""></a>{% endif %}
+      </div>
+    {% empty %}
+      <p class="who">{% blocktranslate %}No updates yet. Seen this problem?
+      Add what you know below.{% endblocktranslate %}</p>
+    {% endfor %}
+
+    <form class="add" method="post" action="{% url 'update_new' issue.public_id %}"
+          enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="hp" aria-hidden="true"><label>{% translate "Leave this field empty" %}{{ update_form.website }}</label></div>
+      {{ update_form.text.label_tag }}{{ update_form.text }}{{ update_form.text.errors }}
+      {{ update_form.photo.label_tag }}{{ update_form.photo }}{{ update_form.photo.errors }}
+      {{ update_form.author_name.label_tag }}{{ update_form.author_name }}{{ update_form.author_name.errors }}
+      <button type="submit">{% translate "Post update" %}</button>
+    </form>
+  </div>
+
   <div class="share">
     <strong>{% translate "Share:" %}</strong>
     <a href="https://wa.me/?text={{ share_quoted }}" rel="noopener">WhatsApp</a>
@@ -69,6 +114,8 @@
     <a href="https://t.me/share/url?url={{ share_url|urlencode }}&text={{ share_text|urlencode }}" rel="noopener">Telegram</a>
     <button type="button" id="copylink" data-url="{{ share_url }}"
             data-done="{% translate 'Copied!' %}">{% translate "Copy link" %}</button>
+    <form class="flag" method="post" action="{% url 'issue_flag' issue.public_id %}">{% csrf_token %}
+      <button type="submit">{% translate "report abuse" %}</button></form>
   </div>
 </div>
 <script>

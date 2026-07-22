@@ -156,6 +156,21 @@ if env("S3_ENDPOINT_URL", default=""):
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Reddit URL-import: Reddit blocks unauthenticated server fetches from
+# many IP ranges; a free "script" app (reddit.com/prefs/apps) fixes it.
+REDDIT_CLIENT_ID = env("REDDIT_CLIENT_ID", default="")
+REDDIT_CLIENT_SECRET = env("REDDIT_CLIENT_SECRET", default="")
+
+# Cache backs the per-IP write throttles (core/abuse.py): Redis when
+# available (the compose default), local memory otherwise (dev/tests).
+if env("REDIS_URL", default=""):
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": env("REDIS_URL"),
+        }
+    }
+
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_TASK_ACKS_LATE = True
 

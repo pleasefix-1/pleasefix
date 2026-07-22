@@ -2,7 +2,21 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 
-class IssueForm(forms.Form):
+class HoneypotMixin(forms.Form):
+    """Invisible field (hidden by CSS on the page); humans leave it
+    empty, bots fill it. Filled → the view silently pretends success."""
+
+    website = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "off", "tabindex": "-1"}),
+    )
+
+    @property
+    def is_spam(self) -> bool:
+        return bool(self.cleaned_data.get("website"))
+
+
+class IssueForm(HoneypotMixin, forms.Form):
     title = forms.CharField(
         label=_("What's the problem?"),
         max_length=200,
@@ -38,6 +52,22 @@ class IssueForm(forms.Form):
     # Carried through the URL-import flow (hidden; see core.importers).
     source_url = forms.URLField(required=False, widget=forms.HiddenInput())
     photo_url = forms.URLField(required=False, widget=forms.HiddenInput())
+
+
+class UpdateForm(HoneypotMixin, forms.Form):
+    text = forms.CharField(
+        label=_("Add an update"),
+        widget=forms.Textarea(
+            attrs={
+                "rows": 3,
+                "placeholder": _("Still broken? Fixed? Add what you know — photos help."),
+            }
+        ),
+    )
+    photo = forms.ImageField(label=_("Photo"), required=False)
+    author_name = forms.CharField(
+        label=_("Your name (optional, shown publicly)"), max_length=100, required=False
+    )
 
 
 class ImportForm(forms.Form):

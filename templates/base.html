@@ -49,6 +49,12 @@
                     border-radius: .4rem; padding: .15rem .6rem; font: inherit; cursor: pointer; }
     footer button[aria-current="true"] { border-color: var(--accent); color: var(--accent);
                     font-weight: 700; }
+    .messages { list-style: none; padding: 0; margin: 0 0 1rem; }
+    .messages li { border: 1px solid var(--accent); border-radius: .5rem;
+                   padding: .6rem 1rem; margin: .4rem 0; }
+    .messages li.error { border-color: var(--danger); color: var(--danger); }
+    /* Honeypot (core/abuse.py): visually gone, still in the DOM for bots. */
+    .hp { position: absolute; left: -9999px; top: -9999px; }
   </style>
 </head>
 <body>
@@ -61,7 +67,16 @@
       <a href="/api/v1/docs">{% translate "API" %}</a>
     </nav>
   </header>
-  <main>{% block content %}{% endblock %}</main>
+  <main>
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
   <footer>
     <form action="{% url 'set_language' %}" method="post">
       {% csrf_token %}
