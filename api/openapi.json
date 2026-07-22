@@ -1,6 +1,63 @@
 {
   "components": {
     "schemas": {
+      "IssueOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "photos": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Photos",
+            "type": "array"
+          },
+          "reporter_name": {
+            "title": "Reporter Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "status",
+          "latitude",
+          "longitude",
+          "reporter_name",
+          "created_at",
+          "photos"
+        ],
+        "title": "IssueOut",
+        "type": "object"
+      },
       "VersionOut": {
         "properties": {
           "api_version": {
@@ -28,6 +85,58 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/issues": {
+      "get": {
+        "operationId": "api_v1_list_issues",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IssueOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List issues (newest first)"
+      }
+    },
+    "/api/v1/issues/{issue_id}": {
+      "get": {
+        "operationId": "api_v1_get_issue",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "issue_id",
+            "required": true,
+            "schema": {
+              "title": "Issue Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get one issue"
+      }
+    },
     "/api/v1/version": {
       "get": {
         "operationId": "api_v1_version",
