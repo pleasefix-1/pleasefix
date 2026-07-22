@@ -122,7 +122,8 @@ portals without APIs. Status flows back through humans.
   updates that filing; it never auto-closes the issue (see WHY.md).
 - Agency-facing scoped portal view for agencies with no systems of their
   own — for them, we are the system.
-- SISPAA integration is a ladder behind one adapter: manual liaison →
+- SISPAA (Sistem Pengurusan Aduan Awam, the government's official
+  public-complaint system) integration is a ladder behind one adapter: manual liaison →
   form automation against SISPAA 1.0 → the SISPAA 2.0 gateway/API as
   access opens up. Category config carries a `sispaa_category` mapping.
 
@@ -181,8 +182,10 @@ are expensive to retrofit are in from the start:
   boundaries — redraws bump a generation, old rows stay for history)
   ⟂ `Body` (agency) ⟂ `Category`. A category is a *per-body join*
   (unique on body+name), never a global taxonomy: the reporter sees the
-  union of categories from every body covering the point — PBT + JKR +
-  TNB overlap is the normal case. Per-category flags: dispatch-email
+  union of categories from every body covering the point — overlap
+  between a Pihak Berkuasa Tempatan (PBT, local council), Jabatan
+  Kerja Raya (JKR, Public Works), and Tenaga Nasional Berhad (TNB,
+  electricity) at one point is the normal case. Per-category flags: dispatch-email
   override, `photo_required`, `non_public`, `prefer_if_multiple`,
   `sispaa_category`, and a typed extra-questions schema. Unconfirmed
   categories hold dispatch; categories are soft-deleted only.

@@ -98,7 +98,10 @@ class Area(models.Model):
 
 class Body(models.Model):
     """
-    An agency/authority reports get filed with (PBT, JKR, TNB, Prasarana…).
+    An agency/authority reports get filed with: a Pihak Berkuasa Tempatan
+    (PBT — local council), Jabatan Kerja Raya (JKR — Public Works),
+    Tenaga Nasional Berhad (TNB — electricity), Prasarana (public
+    transport)…
     Dispatch details beyond the email floor live on adapters, not here.
     """
 
@@ -122,7 +125,8 @@ class Body(models.Model):
 
 
 class CategoryGroup(models.Model):
-    """Two-level category dropdown: Malaysian PBT taxonomies are large."""
+    """Two-level category dropdown: Malaysian local-council (PBT)
+    complaint taxonomies are large."""
 
     name = models.CharField(_("name"), max_length=100, unique=True)
     order = models.PositiveIntegerField(default=0)
@@ -141,7 +145,8 @@ class CategoryQuerySet(models.QuerySet["Category"]):
     def for_point(self, point: Point) -> "CategoryQuerySet":
         """Categories a reporter at `point` can choose: the union across
         every active body whose area covers the point. Multi-body overlap
-        (PBT + JKR + TNB) is the normal case, not an edge."""
+        (local council + Public Works + the electricity utility,
+        all at one point) is the normal case, not an edge."""
         return self.active().filter(
             body__areas__is_active=True, body__areas__boundary__covers=point
         )
@@ -168,14 +173,16 @@ class Category(models.Model):
         CategoryGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name="categories"
     )
     state = models.CharField(max_length=12, choices=State.choices, default=State.UNCONFIRMED)
-    # Overrides the body's dispatch email when set (one PBT: rubbish by
-    # email, roads via SISPAA — adapter binding is two-level).
+    # Overrides the body's dispatch email when set (one council might
+    # take rubbish by email but roads via SISPAA — binding is two-level).
     dispatch_email = models.EmailField(_("dispatch email override"), blank=True)
     photo_required = models.BooleanField(default=False)
     # Dispatched but never public (plate numbers, welfare, salah laku).
     non_public = models.BooleanField(default=False)
     prefer_if_multiple = models.BooleanField(default=False)
-    # SISPAA taxonomy mapping (kelewatan tindakan, kekurangan kemudahan…).
+    # Mapping into the taxonomy of SISPAA (Sistem Pengurusan Aduan Awam,
+    # the government's public-complaint system): kelewatan tindakan,
+    # kekurangan kemudahan…
     sispaa_category = models.CharField(max_length=100, blank=True)
     # Category-defined extra questions: a small typed field schema
     # ({name, label, datatype, required, options…}); answers land on
@@ -571,11 +578,12 @@ class Filing(models.Model):
     """
     One official filing of an issue with one body — many per issue
     (cross-jurisdictional by design). Carries the external reference and
-    the *agency's* status: once dispatched, the agency system (SISPAA,
-    PBT ticket) is system-of-record for that filing only — a filing
+    the *agency's* status: once dispatched, the agency system (SISPAA —
+    the government's public-complaint system — or a council's own
+    ticketing) is system-of-record for that filing only — a filing
     closing NEVER auto-closes the issue; the community record stays open
     until the problem is actually fixed. Also records community-filed
-    parallel complaints ("MPSJ: filed; raised with local councillor"),
+    parallel complaints ("Subang Jaya city council: filed; raised with local councillor"),
     hence body may be blank with a free-text target instead.
     """
 

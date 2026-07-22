@@ -7,7 +7,8 @@ channels — keep the issue **open and public until it is actually fixed**,
 with every filing, photo, and status change on the record.
 
 Inspired by FixMyStreet; built as an independent open platform.
-**Why this exists alongside SISPAA and agency hotlines:** see
+**Why this exists alongside SISPAA (the government's official
+complaint system) and agency hotlines:** see
 [docs/WHY.md](docs/WHY.md). Architecture and decisions:
 [docs/DESIGN.md](docs/DESIGN.md). Want to help?
 [CONTRIBUTING.md](CONTRIBUTING.md).

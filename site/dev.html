@@ -201,6 +201,23 @@ uv run python manage.py export_good_first_issues && git diff --exit-code site/go
       <li>Or ignore both and build a client against
         <a href="/api/v1/docs">the API</a> — that's the stone-soup move.</li>
     </ul>
+    <p><strong>Glossary</strong> (Malaysian civic terms you'll meet in the
+    code and docs — not every developer knows these, so we spell them out):</p>
+    <ul>
+      <li><strong>PBT</strong> — <em>Pihak Berkuasa Tempatan</em>, a local
+        authority/council (e.g. Majlis Bandaraya Petaling Jaya, MBPJ).
+        The default owner of potholes, drains, and streetlights.</li>
+      <li><strong>JKR</strong> — <em>Jabatan Kerja Raya</em>, the Public
+        Works Department (federal/state roads and bridges).</li>
+      <li><strong>TNB</strong> — <em>Tenaga Nasional Berhad</em>, the
+        national electricity utility (some streetlights are theirs).</li>
+      <li><strong>SISPAA</strong> — <em>Sistem Pengurusan Aduan Awam</em>,
+        the government's official public-complaint system.</li>
+      <li><strong>Prasarana</strong> — the state-owned public-transport
+        operator (LRT — light rail transit, monorail, buses).</li>
+      <li><strong>aduan</strong> — Bahasa Melayu for “complaint”;
+        <strong>selesai</strong> — “resolved/done”.</li>
+    </ul>
   </div>
 
   <footer>
@@ -275,7 +292,10 @@ const STEPS = [
   {t:"Routing: point → areas → bodies → categories", f:"core/models.py",
    b:`<p><code>Category.objects.for_point(location)</code> returns what the
    reporter can pick: the union of categories from <em>every</em> active
-   body whose area covers the point. Overlap (PBT + JKR + TNB at one
+   body whose area covers the point. Overlap — a Pihak Berkuasa
+   Tempatan (PBT, the local council), Jabatan Kerja Raya (JKR, the
+   Public Works Department), and Tenaga Nasional Berhad (TNB, the
+   electricity utility) all at one
    spot) is the normal case. Zero matches is accepted and marked, never
    rejected — "we don't know who owns this yet" is honest data.</p>`},
   {t:"The claim token — shown once, never stored", f:"core/models.py",
@@ -302,8 +322,9 @@ const STEPS = [
    changes are public, attributed record entries.</p>`},
   {t:"Filings: the community record vs agency tickets", f:"core/models.py",
    b:`<p>Each official complaint is a <code>Filing</code> — one per
-   (issue, body), many per issue: <em>MPSJ: filed · Prasarana: filed ·
-   SISPAA: ref ADU-12345</em>. The agency closing its ticket updates
+   (issue, body), many per issue: <em>the Subang Jaya city council:
+   filed · Prasarana (the public-transport operator): filed · SISPAA
+   (the government's public-complaint system): ref ADU-12345</em>. The agency closing its ticket updates
    <strong>that filing only</strong>. The issue stays open until the
    problem is actually fixed — that is the whole point of the platform
    (see <a href="index.html">why</a>).</p>`},
@@ -355,21 +376,21 @@ const MODELS = {
             ["external_code","gov code, for imports"]],
     rels:["Body","Issue"]},
   Body: {group:"Routing (jurisdictions are data, not code)",
-    why:"An agency (PBT, JKR, TNB, Prasarana…). dispatch_email is the delivery floor — most Malaysian agencies are an inbox, and that's fine.",
+    why:"An agency: a Pihak Berkuasa Tempatan (PBT — local council), Jabatan Kerja Raya (JKR — Public Works), Tenaga Nasional Berhad (TNB — electricity), Prasarana (public transport)… dispatch_email is the delivery floor — most Malaysian agencies are an inbox, and that's fine.",
     fields:[["name, slug",""],["dispatch_email","email adapter floor; category can override"],
             ["areas","M2M to Area — which ground it covers"],["is_active",""]],
     rels:["Area","Category","Filing"]},
   CategoryGroup: {group:"Routing (jurisdictions are data, not code)",
-    why:"Two-level dropdown. Malaysian PBT taxonomies are large; a flat list dies at ~30 entries.",
+    why:"Two-level dropdown. Malaysian local-council (PBT) complaint taxonomies are large; a flat list dies at ~30 entries.",
     fields:[["name, order",""]], rels:["Category"]},
   Category: {group:"Routing (jurisdictions are data, not code)",
-    why:"A per-body join, NOT a global taxonomy — unique on (body, name). The reporter sees the union across all bodies covering their point, because PBT + JKR + TNB overlap is the normal case. A global category table with one agency FK would not survive contact with reality.",
+    why:"A per-body join, NOT a global taxonomy — unique on (body, name). The reporter sees the union across all bodies covering their point, because local council + Public Works (JKR) + the electricity utility (TNB) overlapping at one point is the normal case. A global category table with one agency FK would not survive contact with reality.",
     fields:[["body → Body","the join that matters"],
             ["name, group","unique per body"],
             ["state","confirmed / unconfirmed / inactive — unconfirmed holds dispatch; soft-delete only"],
-            ["dispatch_email","overrides the body's (one PBT: rubbish by email, roads via SISPAA)"],
+            ["dispatch_email","overrides the body's (one council might take rubbish by email but roads via SISPAA)"],
             ["photo_required, non_public, prefer_if_multiple","per-category behaviour flags"],
-            ["sispaa_category","mapping into the SISPAA taxonomy"],
+            ["sispaa_category","mapping into the taxonomy of SISPAA, the government's public-complaint system"],
             ["extra_fields","typed extra-questions schema; answers land on Issue.extra_answers"]],
     rels:["Body","CategoryGroup","Issue"]},
   Tag: {group:"Routing (jurisdictions are data, not code)",
