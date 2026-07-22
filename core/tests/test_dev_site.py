@@ -8,8 +8,10 @@ explorer, and every file the page points at must actually exist.
 import re
 from pathlib import Path
 
+import pytest
 from django.apps import apps
 from django.conf import settings
+from django.test import Client
 
 DEV_HTML = Path(settings.BASE_DIR) / "site" / "dev.html"
 
@@ -32,6 +34,25 @@ def test_every_core_model_is_in_the_walkthrough() -> None:
         f"site/dev.html documents model(s) that no longer exist: {sorted(stale)}. "
         "Remove or rename their cards."
     )
+
+
+@pytest.mark.django_db
+def test_walkthrough_is_served_and_linked_from_the_app() -> None:
+    client = Client()
+    page = client.get("/site/dev.html")
+    assert page.status_code == 200
+    assert b"How <span>PleaseFix</span> works" in page.content
+    # The crumbs' relative links must resolve within the app too.
+    assert client.get("/site/index.html").status_code == 200
+    assert client.get("/site/contribute.html").status_code == 200
+    # Discoverable from every app page via the footer.
+    home = client.get("/")
+    assert b'href="/site/dev.html"' in home.content
+
+
+@pytest.mark.django_db
+def test_site_page_view_serves_only_site_html() -> None:
+    assert Client().get("/site/nope.html").status_code == 404
 
 
 def test_every_referenced_file_exists() -> None:

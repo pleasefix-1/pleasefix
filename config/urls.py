@@ -9,6 +9,7 @@ from core import views
 urlpatterns = [
     path("", views.home, name="home"),
     path("about/", views.about, name="about"),
+    path("site/<slug:page>.html", views.site_page, name="site_page"),
     path("report/", views.report_new, name="report_new"),
     path("report/import/", views.report_import, name="report_import"),
     path("issues/", views.issue_list, name="issue_list"),

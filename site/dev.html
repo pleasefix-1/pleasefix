@@ -46,7 +46,8 @@
   .arch { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
           gap: .75rem; margin: 1.25rem 0; }
   .svc { cursor: pointer; border: 1px solid var(--border); border-radius: .6rem;
-         padding: .7rem .9rem; background: var(--card); transition: border-color .15s; }
+         padding: .7rem .9rem; background: var(--card); transition: border-color .15s;
+         color: inherit; font: inherit; text-align: left; }
   .svc:hover, .svc:focus-visible { border-color: var(--accent); }
   .svc.active { border-color: var(--accent); background: var(--hl); }
   .svc h3 { margin: 0; font-size: .95rem; }
@@ -82,7 +83,8 @@
   .mrow { display: flex; flex-wrap: wrap; gap: .5rem; }
   .mcard { cursor: pointer; border: 1px solid var(--border); border-radius: .5rem;
            padding: .4rem .8rem; background: var(--card); font-weight: 600;
-           font-size: .9rem; transition: border-color .15s; }
+           font-size: .9rem; transition: border-color .15s;
+           color: inherit; font-family: inherit; }
   .mcard:hover, .mcard:focus-visible { border-color: var(--accent); }
   .mcard.active { border-color: var(--accent); background: var(--hl); }
   #model-detail { margin-top: 1rem; }

@@ -6,7 +6,7 @@ from django.contrib.auth.views import redirect_to_login
 from django.core.files.base import ContentFile
 from django.db import IntegrityError, connection, transaction
 from django.db.models import Prefetch
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -29,6 +29,18 @@ def home(request: HttpRequest) -> HttpResponse:
 def about(request: HttpRequest) -> HttpResponse:
     """Interactive explainer: what PleaseFix is and why it exists."""
     return render(request, "about.html")
+
+
+def site_page(request: HttpRequest, page: str) -> HttpResponse:
+    """Serve the static outreach/onboarding pages (site/*.html — the
+    landing page, contributor tracks, and the developer walkthrough)
+    from the app, so /site/dev.html works out of the box on every
+    deployment. The <slug> URL converter admits no dots or slashes, so
+    only files directly inside site/ are reachable."""
+    path = settings.BASE_DIR / "site" / f"{page}.html"
+    if not path.is_file():
+        raise Http404
+    return HttpResponse(path.read_bytes(), content_type="text/html; charset=utf-8")
 
 
 def report_new(request: HttpRequest) -> HttpResponse:

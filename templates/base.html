@@ -119,6 +119,7 @@
               {% if LANGUAGE_CODE == "en" %}aria-current="true"{% endif %}>English</button>
     </form>
     <span>{% blocktranslate %}An independent, open civic platform.{% endblocktranslate %}</span>
+    <a href="{% url 'site_page' page='dev' %}">{% translate "How it works (developers)" %}</a>
     <a href="https://github.com/pleasefix-1/pleasefix">{% translate "Source code" %}</a>
   </footer>
 </body>

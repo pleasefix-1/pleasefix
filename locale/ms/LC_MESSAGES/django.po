@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PleaseFix\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-22 15:42+0800\n"
+"POT-Creation-Date: 2026-07-22 17:02+0800\n"
 "PO-Revision-Date: 2026-07-22 08:45+0800\n"
 "Last-Translator: PleaseFix Maintainers "
 "<pleasefix-1@users.noreply.github.com>\n"
@@ -389,7 +389,7 @@ msgstr ""
 "Terlalu banyak penghantaran daripada sambungan anda — sila cuba sebentar "
 "lagi."
 
-#: core/views.py:126
+#: core/views.py:138
 #, python-format
 msgid ""
 "\n"
@@ -404,19 +404,19 @@ msgstr ""
 "\n"
 "(Diimport daripada kiriman oleh %(author)s)"
 
-#: core/views.py:194 core/views.py:225
+#: core/views.py:206 core/views.py:237
 msgid "That secret doesn't match this report."
 msgstr "Rahsia itu tidak sepadan dengan laporan ini."
 
-#: core/views.py:204
+#: core/views.py:216
 msgid "Update added — thank you."
 msgstr "Kemas kini ditambah — terima kasih."
 
-#: core/views.py:223
+#: core/views.py:235
 msgid "Report claimed — it's now linked to your account."
 msgstr "Laporan dituntut — kini dipautkan ke akaun anda."
 
-#: core/views.py:241
+#: core/views.py:253
 msgid "Thanks — this has been reported for review by moderators."
 msgstr "Terima kasih — ini telah dilaporkan untuk semakan moderator."
 
@@ -842,6 +842,10 @@ msgid "An independent, open civic platform."
 msgstr "Platform sivik bebas dan terbuka."
 
 #: templates/base.html:122
+msgid "How it works (developers)"
+msgstr "Cara ia berfungsi (pembangun)"
+
+#: templates/base.html:123
 msgid "Source code"
 msgstr "Kod sumber"
 
