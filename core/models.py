@@ -39,6 +39,10 @@ class Issue(models.Model):
         _("status"), max_length=10, choices=Status.choices, default=Status.OPEN
     )
     reporter_name = models.CharField(_("reporter name"), max_length=100, blank=True)
+    # Moderation: content is hidden, never deleted (auditable, reversible).
+    is_hidden = models.BooleanField(default=False)
+    # Salted hash of the submitter's IP — abuse tracing without storing PII.
+    ip_hash = models.CharField(max_length=64, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -50,6 +54,10 @@ class Issue(models.Model):
 
     def get_absolute_url(self) -> str:
         return reverse("issue_detail", args=[self.public_id])
+
+    @classmethod
+    def public(cls) -> models.QuerySet["Issue"]:
+        return cls.objects.filter(is_hidden=False)
 
     @property
     def reference_code(self) -> str:
@@ -63,6 +71,64 @@ class Issue(models.Model):
     @property
     def longitude(self) -> float:
         return float(self.location.x)
+
+
+class IssueUpdate(models.Model):
+    """
+    A public follow-up on an issue — anyone can add one: more evidence,
+    "still broken", "contractor came today", a photo. The visible
+    conversation is what makes an issue a shared community record.
+    """
+
+    issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name="updates")
+    text = models.TextField(_("update"))
+    author_name = models.CharField(_("name"), max_length=100, blank=True)
+    photo = models.ImageField(_("photo"), upload_to="updates/%Y/%m/", blank=True)
+    is_hidden = models.BooleanField(default=False)
+    ip_hash = models.CharField(max_length=64, blank=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self) -> str:
+        return f"Update on {self.issue.public_id}"
+
+
+class Flag(models.Model):
+    """
+    "Report abuse" on an issue or update, by anyone, no login. Deduped
+    per submitter (hashed IP); enough distinct flags auto-hides the
+    content pending human review (hidden, never deleted).
+    """
+
+    AUTO_HIDE_THRESHOLD = 3
+
+    issue = models.ForeignKey(
+        Issue, on_delete=models.CASCADE, related_name="flags", null=True, blank=True
+    )
+    update = models.ForeignKey(
+        IssueUpdate, on_delete=models.CASCADE, related_name="flags", null=True, blank=True
+    )
+    ip_hash = models.CharField(max_length=64, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["issue", "ip_hash"],
+                name="unique_issue_flag_per_ip",
+                condition=models.Q(issue__isnull=False),
+            ),
+            models.UniqueConstraint(
+                fields=["update", "ip_hash"],
+                name="unique_update_flag_per_ip",
+                condition=models.Q(update__isnull=False),
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"Flag on {self.issue_id or self.update_id}"
 
 
 class IssuePhoto(models.Model):
