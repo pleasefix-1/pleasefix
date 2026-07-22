@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% comment %}
+Every allauth page (login, signup, password, email…) inherits from this
+layout — extending the site base puts them all inside our shell. Their
+form markup is classless; it's styled by the `form:not([class])` rules
+in base.html.
+{% endcomment %}
+{% block title %}{% block head_title %}{% endblock %} — {{ SITE_NAME }}{% endblock %}

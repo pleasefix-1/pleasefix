@@ -55,6 +55,22 @@
     .messages li.error { border-color: var(--danger); color: var(--danger); }
     /* Honeypot (core/abuse.py): visually gone, still in the DOM for bots. */
     .hp { position: absolute; left: -9999px; top: -9999px; }
+    /* Account pages (allauth renders classless forms — see
+       templates/allauth/layouts/base.html). Our own forms carry classes
+       or live in styled containers, so this only reaches allauth. */
+    main form:not([class]) { max-width: 26rem; }
+    main form:not([class]) p { margin: .9rem 0; }
+    main form:not([class]) label { display: block; font-weight: 600; margin-bottom: .25rem; }
+    main form:not([class]) input:not([type=checkbox]):not([type=radio]) {
+      width: 100%; padding: .5rem .6rem; font: inherit; color: var(--fg);
+      background: var(--bg); border: 1px solid var(--border); border-radius: .4rem; }
+    main form:not([class]) button, main form:not([class]) a[href] {
+      display: inline-block; margin-top: .6rem; padding: .55rem 1.1rem; font: inherit;
+      font-weight: 700; color: var(--bg); background: var(--accent);
+      border: 1px solid var(--accent); border-radius: .45rem; cursor: pointer;
+      text-decoration: none; }
+    main .errorlist { color: var(--danger); list-style: none; padding: 0; margin: .25rem 0; }
+    main .helptext { color: var(--muted); font-size: .9rem; display: block; }
   </style>
 </head>
 <body>

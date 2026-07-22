@@ -27,6 +27,14 @@ def test_language_switcher_present(client: Client) -> None:
     assert b'name="language" value="ms"' in response.content
 
 
+def test_account_pages_use_site_shell(client: Client) -> None:
+    for path in ("/accounts/login/", "/accounts/signup/", "/accounts/password/reset/"):
+        content = client.get(path).content.decode()
+        assert 'class="brand"' in content, path  # our header
+        assert "/i18n/setlang/" in content, path  # our footer
+        assert "PleaseFix" in content, path
+
+
 def test_healthz(client: Client) -> None:
     response = client.get("/healthz")
     assert response.status_code == 200
