@@ -4,9 +4,13 @@
   "service": "app",
   "workspaceFolder": "/app",
   // The app image is the production image and stays git-free; features
-  // are layered onto the dev container only. github-cli: `gh auth login`
-  // gives HTTPS push/pull without SSH keys in the container (VS Code
-  // only forwards an SSH agent if one is running on the host).
+  // are layered onto the dev container only. There is no ssh client in
+  // the container, so git talks to GitHub over HTTPS via gh: run
+  // `gh auth login` once, then push/pull work. postCreate wires gh as the
+  // git credential helper and rewrites the repo's git@github.com: SSH
+  // remote to HTTPS for this container only (container-global git config;
+  // .git/config is bind-mounted and shared with the host, so it is left
+  // untouched — the host keeps its dedicated-key SSH setup).
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
@@ -15,7 +19,7 @@
   "portsAttributes": {
     "8000": { "label": "PleaseFix app" }
   },
-  "postCreateCommand": "test -f .env || cp .env.example .env; uv sync && uv run python manage.py compilemessages",
+  "postCreateCommand": "test -f .env || cp .env.example .env; uv sync && uv run python manage.py compilemessages; command -v gh >/dev/null 2>&1 && gh auth setup-git 2>/dev/null || true; git config --global --replace-all 'url.https://github.com/.insteadOf' 'git@github.com:'; git config --global --add 'url.https://github.com/.insteadOf' 'git@github.com-pleasefix:'",
   "customizations": {
     "vscode": {
       "extensions": [
