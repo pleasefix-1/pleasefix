@@ -1,0 +1,27 @@
+{
+  "name": "PleaseFix",
+  "dockerComposeFile": ["../compose.yaml", "../compose.override.yaml"],
+  "service": "app",
+  "workspaceFolder": "/app",
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": { "label": "PleaseFix app" }
+  },
+  "postCreateCommand": "uv sync && uv run python manage.py compilemessages",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.mypy-type-checker",
+        "charliermarsh.ruff"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/app/.venv/bin/python",
+        "editor.formatOnSave": true,
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        }
+      }
+    }
+  }
+}
