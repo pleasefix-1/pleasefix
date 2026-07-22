@@ -20,12 +20,24 @@ from django.http import HttpRequest
 
 
 def client_ip(request: HttpRequest) -> str:
-    # Behind Caddy (our compose topology) the client is the first
-    # X-Forwarded-For entry; direct connections fall back to REMOTE_ADDR.
-    forwarded = str(request.META.get("HTTP_X_FORWARDED_FOR", ""))
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return str(request.META.get("REMOTE_ADDR", ""))
+    """The real client address.
+
+    `X-Forwarded-For` is client-controlled and must NOT be trusted blindly
+    — doing so lets one person forge unlimited distinct IPs and thereby
+    bypass rate limits and flag-dedupe (flag-bombing any issue). We only
+    consult it when `TRUSTED_PROXY_COUNT > 0` (set it to the number of
+    proxies you actually run in front of the app, e.g. 1 for Caddy), and
+    then read the entry that many hops from the right — the address the
+    outermost trusted proxy saw. Otherwise we use REMOTE_ADDR only.
+    """
+    remote_addr = str(request.META.get("REMOTE_ADDR", ""))
+    hops = getattr(settings, "TRUSTED_PROXY_COUNT", 0)
+    if hops > 0:
+        forwarded = str(request.META.get("HTTP_X_FORWARDED_FOR", ""))
+        chain = [p.strip() for p in forwarded.split(",") if p.strip()]
+        if len(chain) >= hops:
+            return chain[-hops]
+    return remote_addr
 
 
 def ip_hash(request: HttpRequest) -> str:
@@ -34,14 +46,24 @@ def ip_hash(request: HttpRequest) -> str:
 
 def throttled(request: HttpRequest, action: str, limit: int, window_seconds: int = 3600) -> bool:
     """True if this client already hit `limit` for `action` within the
-    window. Fixed-window counter in the cache — coarse but effective."""
+    window. Fixed-window counter in the cache — coarse but effective.
+    Fails CLOSED (treats as throttled) if the cache backend errors, so a
+    dead cache can't silently disable every write limit."""
     key = f"throttle:{action}:{ip_hash(request)}"
-    added = cache.add(key, 1, timeout=window_seconds)
-    if added:
-        return False
     try:
-        count = int(cache.incr(key))
-    except ValueError:  # expired between add and incr
-        cache.add(key, 1, timeout=window_seconds)
-        return False
-    return count > limit
+        added = cache.add(key, 1, timeout=window_seconds)
+        if added:
+            return False
+        try:
+            count = int(cache.incr(key))
+        except ValueError:  # expired between add and incr
+            cache.add(key, 1, timeout=window_seconds)
+            return False
+        return count > limit
+    except Exception:
+        return True
+
+
+def throttle_limit(action: str) -> int:
+    """Per-action write limits per hour (settings.THROTTLE_LIMITS)."""
+    return int(settings.THROTTLE_LIMITS[action])

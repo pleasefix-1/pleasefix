@@ -33,6 +33,10 @@ services:
     environment:
       DATABASE_URL: postgis://pleasefix:${POSTGRES_PASSWORD:-pleasefix}@db:5432/pleasefix
       REDIS_URL: redis://redis:6379/0
+      # The app sits behind Caddy here, so the real client IP is the last
+      # X-Forwarded-For hop (core/abuse.py). In production, stop publishing
+      # port 8000 below so the app is reachable ONLY through Caddy.
+      TRUSTED_PROXY_COUNT: "1"
     command: sh -c "python manage.py migrate && gunicorn config.wsgi --bind 0.0.0.0:8000 --workers 3"
     ports:
       - "8000:8000"

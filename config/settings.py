@@ -34,9 +34,18 @@ env = environ.Env(
 
 environ.Env.read_env(BASE_DIR / ".env")
 
-SECRET_KEY = env("SECRET_KEY", default="dev-only-insecure-key")  # noqa: S106
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
+
+_INSECURE_KEY = "dev-only-insecure-key"  # noqa: S105
+SECRET_KEY = env("SECRET_KEY", default=_INSECURE_KEY)
+# Never boot production with the placeholder key: it salts session/CSRF
+# signing, claim-token hashes, and IP hashes. A leaked/default key means
+# forgeable sessions and reversible reporter identities.
+if not DEBUG and SECRET_KEY in (_INSECURE_KEY, "change-me", ""):
+    from django.core.exceptions import ImproperlyConfigured
+
+    raise ImproperlyConfigured("SECRET_KEY must be set to a strong secret when DEBUG is off.")
 
 # Homebrew/macOS local dev: point these at your libgdal/libgeos dylibs.
 # Ignored when the path doesn't exist, so the same .env works inside the
@@ -135,6 +144,10 @@ TIME_ZONE = env("TIME_ZONE")
 USE_I18N = True
 USE_TZ = True
 
+# Adopt the Django 6 default now (URLField assumes https) — silences the
+# transitional deprecation warning.
+FORMS_URLFIELD_ASSUME_HTTPS = True
+
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
@@ -168,8 +181,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REDDIT_CLIENT_ID = env("REDDIT_CLIENT_ID", default="")
 REDDIT_CLIENT_SECRET = env("REDDIT_CLIENT_SECRET", default="")
 
-# Cache backs the per-IP write throttles (core/abuse.py): Redis when
-# available (the compose default), local memory otherwise (dev/tests).
+# Cache backs the per-IP write throttles (core/abuse.py). It MUST be
+# shared across processes in production — the default per-process
+# LocMemCache would make each gunicorn worker count separately, so the
+# effective limit becomes limit × workers. Require Redis when DEBUG off.
 if env("REDIS_URL", default=""):
     CACHES = {
         "default": {
@@ -177,6 +192,27 @@ if env("REDIS_URL", default=""):
             "LOCATION": env("REDIS_URL"),
         }
     }
+elif not DEBUG:
+    from django.core.exceptions import ImproperlyConfigured
+
+    raise ImproperlyConfigured(
+        "REDIS_URL is required when DEBUG is off (per-process caching would "
+        "make rate throttles ineffective across workers)."
+    )
+
+# Per-action hourly write limits (core/abuse.py). Env-overridable.
+THROTTLE_LIMITS = {
+    "report": env.int("THROTTLE_REPORT", default=5),
+    "update": env.int("THROTTLE_UPDATE", default=10),
+    "import": env.int("THROTTLE_IMPORT", default=10),
+    "flag": env.int("THROTTLE_FLAG", default=30),
+    "claim": env.int("THROTTLE_CLAIM", default=20),
+}
+
+# Number of trusted reverse proxies in front of the app (0 = none, read
+# REMOTE_ADDR only). Set to 1 for the bundled Caddy topology. See
+# core/abuse.py::client_ip — do NOT raise this above your real proxy count.
+TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=0)
 
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_TASK_ACKS_LATE = True
@@ -190,3 +226,11 @@ MAP_DEFAULT_ZOOM = env("MAP_DEFAULT_ZOOM")
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
+    # Cookies carry the session (logged-in users + the one-time reporter
+    # secret) — keep them off plaintext HTTP.
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
+    SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=31536000)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
