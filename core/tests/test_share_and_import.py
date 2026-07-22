@@ -105,11 +105,34 @@ def test_submitting_imported_form_downloads_photo(
     assert created.photos.count() == 1
 
 
-def test_ssrf_guard_rejects_private_hosts() -> None:
+def test_ssrf_guard_rejects_non_http_scheme() -> None:
     with pytest.raises(importers.ImportError_):
-        importers._assert_public_http_url("http://127.0.0.1:8000/admin/")
+        importers.safe_get("ftp://example.com/x")
+
+
+def test_ssrf_guard_rejects_private_resolution(monkeypatch: pytest.MonkeyPatch) -> None:
+    import socket
+
+    def resolve_private(host: str, port: int, **kw: object) -> list[object]:
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", port))]
+
+    monkeypatch.setattr(socket, "getaddrinfo", resolve_private)
     with pytest.raises(importers.ImportError_):
-        importers._assert_public_http_url("ftp://example.com/x")
+        importers.safe_get("http://evil.example/")
+
+
+def test_ssrf_guard_rejects_mixed_public_private(monkeypatch: pytest.MonkeyPatch) -> None:
+    import socket
+
+    def resolve_mixed(host: str, port: int, **kw: object) -> list[object]:
+        return [
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("8.8.8.8", port)),
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("169.254.169.254", port)),
+        ]
+
+    monkeypatch.setattr(socket, "getaddrinfo", resolve_mixed)
+    with pytest.raises(importers.ImportError_):
+        importers.safe_get("http://rebind.example/")
 
 
 def test_og_tag_parsing() -> None:
