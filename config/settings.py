@@ -128,7 +128,9 @@ ACCOUNT_EMAIL_VERIFICATION = "optional"
 # i18n: BM + EN from day one (docs/DESIGN.md — bilingual or never dig out).
 LANGUAGE_CODE = env("LANGUAGE_CODE")
 LANGUAGES = [("ms", "Bahasa Melayu"), ("en", "English")]
-LOCALE_PATHS = [BASE_DIR / "locale"]
+# locale/ is managed by makemessages; locale_vendor/ holds hand-written
+# translations for third-party apps (allauth) that ship no `ms` catalog.
+LOCALE_PATHS = [BASE_DIR / "locale", BASE_DIR / "locale_vendor"]
 TIME_ZONE = env("TIME_ZONE")
 USE_I18N = True
 USE_TZ = True

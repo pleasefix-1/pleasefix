@@ -1,0 +1,64 @@
+# Bahasa Melayu overrides for third-party apps (django-allauth) that ship
+# no `ms` catalog. Kept separate from locale/ so `makemessages` (which
+# scans only our own code) never marks these obsolete. msgids are copied
+# verbatim from the installed allauth version; see docs/DESIGN.md §9.
+msgid ""
+msgstr ""
+"Project-Id-Version: PleaseFix vendor overrides\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ms\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Sign In"
+msgstr "Log Masuk"
+
+msgid "Sign Up"
+msgstr "Daftar"
+
+msgid "Sign Out"
+msgstr "Log Keluar"
+
+msgid "Email"
+msgstr "E-mel"
+
+msgid "Password"
+msgstr "Kata Laluan"
+
+msgid "Username"
+msgstr "Nama pengguna"
+
+msgid "Remember Me"
+msgstr "Ingat Saya"
+
+msgid "Forgot your password?"
+msgstr "Lupa kata laluan anda?"
+
+msgid "Password Reset"
+msgstr "Set Semula Kata Laluan"
+
+msgid "Reset My Password"
+msgstr "Set Semula Kata Laluan Saya"
+
+msgid ""
+"If you have not created an account yet, then please %(link)ssign "
+"up%(end_link)s first."
+msgstr ""
+"Jika anda belum membuat akaun, sila %(link)sdaftar%(end_link)s terlebih "
+"dahulu."
+
+msgid "Already have an account? Then please %(link)ssign in%(end_link)s."
+msgstr "Sudah ada akaun? Sila %(link)slog masuk%(end_link)s."
+
+msgid ""
+"Forgotten your password? Enter your email address below, and we'll send you "
+"an email allowing you to reset it."
+msgstr ""
+"Lupa kata laluan anda? Masukkan alamat e-mel anda di bawah, dan kami akan "
+"menghantar e-mel untuk anda menetapkannya semula."
+
+msgid "Please contact us if you have any trouble resetting your password."
+msgstr ""
+"Sila hubungi kami jika anda menghadapi masalah menetapkan semula kata "
+"laluan anda."
