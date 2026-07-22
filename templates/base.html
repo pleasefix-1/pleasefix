@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+  {% block meta %}{% endblock %}
   <script src="{% static 'js/htmx.min.js' %}" defer></script>
   <style>
     /* Palette: green = action/open/ours, red = closed/failure states.

@@ -1,6 +1,22 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block title %}{{ issue.title }} — {{ SITE_NAME }}{% endblock %}
+{% block meta %}
+  <link rel="canonical" href="{{ share_url }}">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="{{ SITE_NAME }}">
+  <meta property="og:title" content="{{ issue.title }} ({{ issue.reference_code }})">
+  <meta property="og:description" content="{{ issue.description|truncatewords:40 }}">
+  <meta property="og:url" content="{{ share_url }}">
+  {% with issue.photos.first as photo %}{% if photo %}
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ photo.image.url }}">
+  <meta name="twitter:card" content="summary_large_image">
+  {% else %}
+  <meta name="twitter:card" content="summary">
+  {% endif %}{% endwith %}
+  <meta property="place:location:latitude" content="{{ issue.latitude }}">
+  <meta property="place:location:longitude" content="{{ issue.longitude }}">
+{% endblock %}
 {% block content %}
 <style>
   .issue .status { display: inline-block; border-radius: 999px; padding: .1rem .7rem;
@@ -11,15 +27,25 @@
   .issue .photos img { max-width: 18rem; max-height: 18rem; border-radius: .5rem; }
   .issue .loc { border: 1px solid var(--border); border-radius: .6rem;
     background: var(--card); padding: .8rem 1.1rem; margin: 1rem 0; font-size: .95rem; }
+  .issue .ref { font-family: ui-monospace, monospace; color: var(--muted); }
+  .share { margin: 1.2rem 0; display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+  .share a, .share button { display: inline-block; padding: .4rem .8rem; font: inherit;
+    font-size: .9rem; border: 1px solid var(--border); border-radius: 999px;
+    text-decoration: none; background: var(--card); color: var(--fg); cursor: pointer; }
+  .share a:hover, .share button:hover { border-color: var(--accent); }
 </style>
 <div class="issue">
   <p><a href="{% url 'issue_list' %}">← {% translate "All issues" %}</a></p>
   <h1>{{ issue.title }}</h1>
   <p class="meta">
     <span class="status {{ issue.status }}">{{ issue.get_status_display }}</span>
+    · <span class="ref">{{ issue.reference_code }}</span>
     · {% blocktranslate with date=issue.created_at|date:"j M Y, H:i" %}reported {{ date }}{% endblocktranslate %}
     {% if issue.reporter_name %}
       · {% blocktranslate with name=issue.reporter_name %}by {{ name }}{% endblocktranslate %}
+    {% endif %}
+    {% if issue.source_url %}
+      · <a href="{{ issue.source_url }}" rel="noopener">{% translate "original post" %}</a>
     {% endif %}
   </p>
   <p>{{ issue.description|linebreaks }}</p>
@@ -35,5 +61,24 @@
     — <a href="https://www.openstreetmap.org/?mlat={{ issue.latitude }}&mlon={{ issue.longitude }}#map=18/{{ issue.latitude }}/{{ issue.longitude }}"
          rel="noopener">{% translate "view on OpenStreetMap" %}</a>
   </div>
+  <div class="share">
+    <strong>{% translate "Share:" %}</strong>
+    <a href="https://wa.me/?text={{ share_quoted }}" rel="noopener">WhatsApp</a>
+    <a href="https://twitter.com/intent/tweet?text={{ share_quoted }}" rel="noopener">X</a>
+    <a href="https://www.facebook.com/sharer/sharer.php?u={{ share_url|urlencode }}" rel="noopener">Facebook</a>
+    <a href="https://t.me/share/url?url={{ share_url|urlencode }}&text={{ share_text|urlencode }}" rel="noopener">Telegram</a>
+    <button type="button" id="copylink" data-url="{{ share_url }}"
+            data-done="{% translate 'Copied!' %}">{% translate "Copy link" %}</button>
+  </div>
 </div>
+<script>
+(function () {
+  var btn = document.getElementById("copylink");
+  btn.addEventListener("click", function () {
+    navigator.clipboard.writeText(btn.getAttribute("data-url")).then(function () {
+      btn.textContent = btn.getAttribute("data-done");
+    });
+  });
+})();
+</script>
 {% endblock %}
