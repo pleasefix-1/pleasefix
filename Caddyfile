@@ -1,0 +1,13 @@
+# Local dev: plain HTTP on :80. Production: replace :80 with your domain
+# (e.g. pleasefix.example.my) and Caddy auto-provisions TLS.
+:80 {
+	reverse_proxy app:8000
+}
+
+# S3 gateway on its own hostname — presigned URLs must be browser-reachable
+# (never point the app at s3:7070 directly; use this public route).
+# Known gotcha: SignatureDoesNotMatch on uploads → check this proxy first
+# (aws-chunked transfer encoding through proxies breaks signatures).
+http://s3.localhost {
+	reverse_proxy s3:7070
+}

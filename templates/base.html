@@ -1,0 +1,29 @@
+{% load static i18n %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+  <script src="{% static 'js/htmx.min.js' %}" defer></script>
+  <style>
+    :root { --fg: #1a1a1a; --bg: #ffffff; --accent: #0b6e4f; --muted: #666; }
+    @media (prefers-color-scheme: dark) {
+      :root { --fg: #eaeaea; --bg: #121212; --accent: #4cc38a; --muted: #999; }
+    }
+    body { font-family: system-ui, sans-serif; color: var(--fg); background: var(--bg);
+           margin: 0; line-height: 1.5; }
+    header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--muted); }
+    header a { color: var(--accent); text-decoration: none; font-weight: 700; }
+    header nav { float: right; }
+    header nav a { font-weight: 400; margin-left: 1rem; }
+    main { max-width: 60rem; margin: 0 auto; padding: 1.5rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/">{{ SITE_NAME }}</a>
+    <nav><a href="{% url 'about' %}">{% translate "About" %}</a></nav>
+  </header>
+  <main>{% block content %}{% endblock %}</main>
+</body>
+</html>

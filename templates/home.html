@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block content %}
+  <h1>{% translate "PleaseFix" %}</h1>
+  <p>
+    {% blocktranslate %}A public, community-owned issue tracker for
+    Malaysia. Report local problems, track every filing with every
+    agency, and keep the issue open until it is actually fixed.{% endblocktranslate %}
+  </p>
+  <p>
+    {% blocktranslate %}This is the seed application — the report flow,
+    map, and issue pages land here next.{% endblocktranslate %}
+  </p>
+  <p>
+    <a href="{% url 'about' %}">{% blocktranslate %}What is PleaseFix, and
+    why does it exist? — an interactive explanation{% endblocktranslate %}</a>
+  </p>
+{% endblock %}

@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: pleasefix
+          POSTGRES_USER: pleasefix
+          POSTGRES_PASSWORD: pleasefix
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U pleasefix"
+          --health-interval 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgis://pleasefix:pleasefix@localhost:5432/pleasefix
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install GDAL
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gdal-bin libgdal-dev
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy .
+      - run: uv run lint-imports
+      - run: uv run pytest
+      - name: OpenAPI schema is up to date (reviewed artifact)
+        run: |
+          uv run python manage.py export_openapi_schema
+          git diff --exit-code api/openapi.json

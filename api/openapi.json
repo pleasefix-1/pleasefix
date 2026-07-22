@@ -1,0 +1,52 @@
+{
+  "components": {
+    "schemas": {
+      "VersionOut": {
+        "properties": {
+          "api_version": {
+            "title": "Api Version",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "api_version"
+        ],
+        "title": "VersionOut",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Public API for the PleaseFix civic issue tracker.",
+    "title": "PleaseFix API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/version": {
+      "get": {
+        "operationId": "api_v1_version",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "API name and version"
+      }
+    }
+  },
+  "servers": []
+}

@@ -1,0 +1,70 @@
+[project]
+name = "pleasefix"
+version = "0.1.0"
+description = "PleaseFix — public, community-owned civic issue tracker for Malaysia"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.1,<6",
+    "django-ninja>=1.3",
+    "psycopg[binary]>=3.2",
+    "django-environ>=0.11",
+    "celery[redis]>=5.4",
+    "redis>=5",
+    "gunicorn>=23",
+    "whitenoise>=6.7",
+    "django-allauth>=65",
+    "django-storages[s3]>=1.14",
+    "django-htmx>=1.19",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "django-stubs[compatible-mypy]>=5.1",
+    "pytest>=8",
+    "pytest-django>=4.9",
+    "factory-boy>=3.3",
+    "import-linter>=2.1",
+    "django-migration-linter>=5.1",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "DJ", "S", "T20"]
+ignore = ["S101"]  # asserts are fine in tests; pytest relies on them
+
+[tool.ruff.lint.per-file-ignores]
+"**/migrations/*" = ["E501"]
+
+[tool.mypy]
+strict = true
+plugins = ["mypy_django_plugin.main"]
+exclude = ["migrations"]
+
+[[tool.mypy.overrides]]
+module = ["environ", "celery", "celery.*"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py"]
+
+[tool.importlinter]
+root_packages = ["core", "api", "config"]
+
+# Protected core (BACKGROUND: blast-radius architecture). The core must not
+# depend on delivery layers; adapters and clients depend inward only.
+[[tool.importlinter.contracts]]
+name = "core does not import delivery layers"
+type = "forbidden"
+source_modules = ["core"]
+forbidden_modules = ["api"]

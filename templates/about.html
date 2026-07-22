@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "About" %} — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<style>
+  .about h2 { margin-top: 2.5rem; font-size: 1.4rem; }
+  .about .lede { font-size: 1.15rem; color: var(--muted); }
+  .quote { border-left: 4px solid var(--accent); padding: .4rem 1rem;
+           margin: 1.5rem 0; font-size: 1.1rem; font-style: italic; }
+  .card { border: 1px solid var(--muted); border-radius: .6rem;
+          padding: 1rem 1.2rem; margin: .8rem 0; }
+  /* Scenario stepper */
+  .lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 40rem) { .lanes { grid-template-columns: 1fr; } }
+  .lane h3 { margin: .2rem 0 .6rem; font-size: 1rem; }
+  .lane.official h3 { color: var(--muted); }
+  .lane.pleasefix h3 { color: var(--accent); }
+  .step { padding: .45rem .6rem; border-radius: .4rem; margin: .35rem 0;
+          border: 1px solid transparent; }
+  .step .who { font-weight: 600; }
+  .step.closed { color: #b3423a; }
+  .step.open { color: var(--accent); }
+  .js-on .step[hidden] { display: none; }
+  .step.now { border-color: var(--accent); background: rgba(76,195,138,.08); }
+  .stepper-controls { margin: 1rem 0; display: none; gap: .5rem; align-items: center; }
+  .js-on .stepper-controls { display: flex; }
+  .stepper-controls button { padding: .45rem 1rem; border-radius: .4rem;
+      border: 1px solid var(--accent); background: transparent;
+      color: var(--accent); font: inherit; cursor: pointer; }
+  .stepper-controls button.primary { background: var(--accent); color: #fff; }
+  .stepper-controls button:disabled { opacity: .4; cursor: default; }
+  .day { color: var(--muted); font-size: .85rem; min-width: 5.5rem; display: inline-block; }
+  /* Dependency demo */
+  .deptree { border: 1px solid var(--muted); border-radius: .6rem; padding: 1rem 1.2rem; }
+  .deptree .main { font-weight: 700; margin-bottom: .6rem; }
+  .deptree label { display: block; margin: .4rem 0 .4rem 1.5rem; cursor: pointer; }
+  .deptree .state { font-weight: 600; }
+  .deptree .state.blocked { color: #b3423a; }
+  .deptree .state.ready { color: var(--accent); }
+  details { margin: .6rem 0; border: 1px solid var(--muted); border-radius: .6rem;
+            padding: .6rem 1rem; }
+  details summary { cursor: pointer; font-weight: 600; }
+  details[open] summary { color: var(--accent); }
+  .pill { display: inline-block; border: 1px solid var(--muted); border-radius: 999px;
+          padding: .05rem .6rem; font-size: .85rem; margin: .1rem .15rem; }
+</style>
+
+<div class="about">
+  <h1>{% translate "What is PleaseFix?" %}</h1>
+  <p class="lede">
+    {% blocktranslate %}A public, community-owned issue tracker for
+    Malaysia. Official complaint channels close tickets; communities fix
+    problems. PleaseFix keeps every issue open — and public — until it is
+    actually fixed.{% endblocktranslate %}
+  </p>
+
+  <h2>{% translate "See the difference: one real kind of issue" %}</h2>
+  <div class="quote">
+    {% blocktranslate %}"I cannot cross the road from the LRT station
+    because of a barrier."{% endblocktranslate %}
+  </div>
+  <p>
+    {% blocktranslate %}Watch how the same complaint plays out in an
+    official system and in PleaseFix.{% endblocktranslate %}
+  </p>
+
+  <div id="scenario">
+    <div class="stepper-controls">
+      <button type="button" id="sc-prev">{% translate "Back" %}</button>
+      <button type="button" id="sc-next" class="primary">{% translate "Next day" %}</button>
+      <span id="sc-progress" class="day"></span>
+    </div>
+    <div class="lanes">
+      <div class="lane official">
+        <h3>{% translate "Official channel" %}</h3>
+        <div class="step" data-step="1"><span class="day">{% translate "Day 1" %}</span>
+          {% blocktranslate %}Complaint filed with the local council.{% endblocktranslate %}</div>
+        <div class="step" data-step="2"><span class="day">{% translate "Day 14" %}</span>
+          <span class="who">{% translate "Council:" %}</span>
+          {% blocktranslate %}"Not our jurisdiction — that land belongs to the rail operator."{% endblocktranslate %}</div>
+        <div class="step closed" data-step="3"><span class="day">{% translate "Day 14" %}</span>
+          {% blocktranslate %}Ticket closed. Case resolved — on paper.{% endblocktranslate %}</div>
+        <div class="step" data-step="4"><span class="day">{% translate "Day 15+" %}</span>
+          {% blocktranslate %}The barrier is still there. Starting over means a new
+          complaint, to a different agency, from zero — and the history of the
+          first one is invisible to everyone else.{% endblocktranslate %}</div>
+        <div class="step" data-step="5"><span class="day">&nbsp;</span>
+          <em>{% blocktranslate %}(nothing further happens){% endblocktranslate %}</em></div>
+        <div class="step" data-step="6"><span class="day">&nbsp;</span></div>
+      </div>
+      <div class="lane pleasefix">
+        <h3>PleaseFix</h3>
+        <div class="step open" data-step="1"><span class="day">{% translate "Day 1" %}</span>
+          {% blocktranslate %}Issue opened — public from the first minute, pinned
+          to the map, with photos. Neighbours subscribe and add their own
+          evidence.{% endblocktranslate %}</div>
+        <div class="step" data-step="2"><span class="day">{% translate "Day 2" %}</span>
+          {% blocktranslate %}Filings fan out and are tracked on the issue:
+          SISPAA (rejected), council (filed), rail operator (filed), local
+          councillor (raised). Each gets its official reference number.{% endblocktranslate %}</div>
+        <div class="step" data-step="3"><span class="day">{% translate "Day 14" %}</span>
+          {% blocktranslate %}The council closes their ticket — that closes
+          <strong>their filing</strong>, not the issue. The issue stays open,
+          with the rejection on the record.{% endblocktranslate %}</div>
+        <div class="step" data-step="4"><span class="day">{% translate "Day 30" %}</span>
+          {% blocktranslate %}The councillor raises it with the rail operator,
+          pointing at the public record: dated photos, four filings, one open
+          issue everyone can see.{% endblocktranslate %}</div>
+        <div class="step" data-step="5"><span class="day">{% translate "Day 60" %}</span>
+          {% blocktranslate %}The operator commits to a crossing. Status updates
+          land on the issue; subscribers are notified.{% endblocktranslate %}</div>
+        <div class="step open" data-step="6"><span class="day">{% translate "Day 90" %}</span>
+          {% blocktranslate %}The crossing is built. The community confirms with
+          photos — and only then is the issue closed: <strong>fixed, verified by
+          the people who reported it</strong>.{% endblocktranslate %}</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>{% translate "Issues can be goals — try it" %}</h2>
+  <p>
+    {% blocktranslate %}Citizens have goals, not category codes. No
+    government form can represent "I want to walk safely from A to B" —
+    PleaseFix models it as an issue blocked by other issues, each possibly
+    a different agency's problem. Resolve the blockers below:{% endblocktranslate %}
+  </p>
+  <div class="deptree" id="deptree">
+    <div class="main">
+      {% blocktranslate %}"I can't walk from the LRT to the school" —{% endblocktranslate %}
+      <span class="state blocked" id="dep-state"
+            data-blocked="{% translate 'blocked' %}"
+            data-partial="{% translate 'partially unblocked' %}"
+            data-ready="{% translate 'ready to verify & close' %}">{% translate "blocked" %}</span>
+    </div>
+    <label><input type="checkbox" class="dep">
+      {% blocktranslate %}No pedestrian crossing at the junction{% endblocktranslate %}
+      <span class="pill">{% translate "council" %}</span></label>
+    <label><input type="checkbox" class="dep">
+      {% blocktranslate %}Streetlights out along the walkway{% endblocktranslate %}
+      <span class="pill">{% translate "utility" %}</span></label>
+    <label><input type="checkbox" class="dep">
+      {% blocktranslate %}Broken drain cover on the path{% endblocktranslate %}
+      <span class="pill">{% translate "council" %}</span></label>
+    <noscript><p><em>{% blocktranslate %}(Interactive with JavaScript: checking
+      all blockers marks the main issue ready to close.){% endblocktranslate %}</em></p></noscript>
+  </div>
+
+  <h2>{% translate "What makes PleaseFix different" %}</h2>
+
+  <details>
+    <summary>{% translate "Public by default — issues belong to everyone they affect" %}</summary>
+    <p>{% blocktranslate %}An official complaint is a private conversation
+    between one person and one agency. A PleaseFix issue is a shared
+    community record: anyone can see it, add photos and updates, subscribe,
+    or follow up on an issue an agency already "closed". Duplicate
+    reporters become subscribers instead of noise.{% endblocktranslate %}</p>
+  </details>
+
+  <details>
+    <summary>{% translate "Evidence that can't be quietly closed" %}</summary>
+    <p>{% blocktranslate %}It has happened that a council closed tickets as
+    "done" when the contractor had done nothing. On PleaseFix the trail is
+    public and permanent: dated photos, the date each complaint was lodged
+    and with whom, every status change. The record outlives the agency's
+    ticket — that is the point.{% endblocktranslate %}</p>
+  </details>
+
+  <details>
+    <summary>{% translate "Cross-jurisdictional by design" %}</summary>
+    <p>{% blocktranslate %}Government systems are one-agency silos;
+    coordinating them has historically taken joint task forces or entire
+    new agencies. One broken streetlight on a federal road near a rail
+    station can genuinely involve three bodies. PleaseFix tracks one issue
+    across every responsible agency at once — each filing with its own
+    official reference number and status.{% endblocktranslate %}</p>
+  </details>
+
+  <details>
+    <summary>{% translate "Community status ≠ official status" %}</summary>
+    <p>{% blocktranslate %}Each agency filing carries that agency's status
+    (filed, rejected, "selesai"). The issue's status belongs to the
+    community: it closes when the problem is verifiably fixed, not when a
+    ticket is. "Agency says fixed, community says not" is representable —
+    and visible.{% endblocktranslate %}</p>
+  </details>
+
+  <details>
+    <summary>{% translate "Tags beyond government categories" %}</summary>
+    <p>{% blocktranslate %}Issues carry community tags no agency taxonomy
+    supports — accessibility, CEDAW, public transport, environment — so
+    advocates can see, for example, every accessibility issue in one
+    neighbourhood at once.{% endblocktranslate %}</p>
+  </details>
+
+  <details>
+    <summary>{% translate "It teaches jurisdiction" %}</summary>
+    <p>{% blocktranslate %}Who is responsible for what is tribal knowledge.
+    PleaseFix explains it — per issue type and per area — and records the
+    official reference numbers, so the government-side trail is trackable
+    from the public one and the next reporter files smarter.{% endblocktranslate %}</p>
+  </details>
+
+  <h2>{% translate "How it works" %}</h2>
+  <div class="card">
+    <p>
+      <span class="pill">1 · {% translate "Report" %}</span>
+      <span class="pill">2 · {% translate "Route" %}</span>
+      <span class="pill">3 · {% translate "Dispatch" %}</span>
+      <span class="pill">4 · {% translate "Track" %}</span>
+      <span class="pill">5 · {% translate "Verify" %}</span>
+    </p>
+    <p>{% blocktranslate %}Report with a photo and a pin on the map (no
+    account needed — a phone number or email is enough). PleaseFix works out
+    the responsible agencies from the location and category, dispatches to
+    each of them, and records every filing. Updates flow back — by agency
+    reply, by staff liaison, or by neighbours adding evidence — and the
+    community verifies the fix before the issue closes.{% endblocktranslate %}</p>
+  </div>
+
+  <h2>{% translate "Built to be built on" %}</h2>
+  <p>{% blocktranslate %}PleaseFix is open source (Apache-2.0) and
+  deliberately contributor-friendly: Django + HTMX, strict typing, one
+  <code>docker compose up</code> for the whole stack. The public API is a
+  first-class product — build your own reporting app, neighbourhood
+  dashboard, or advocacy view on the same public data.{% endblocktranslate %}</p>
+  <p>
+    <a href="/api/v1/docs">{% translate "Explore the API" %}</a> ·
+    <a href="https://github.com/pleasefix">{% translate "Source & contributing" %}</a>
+  </p>
+</div>
+
+<script>
+(function () {
+  document.querySelector(".about").classList.add("js-on");
+
+  /* Scenario stepper: reveal both lanes day by day. */
+  var steps = Array.prototype.slice.call(document.querySelectorAll("#scenario .step"));
+  var max = 6, cur = 1;
+  var prev = document.getElementById("sc-prev");
+  var next = document.getElementById("sc-next");
+  var progress = document.getElementById("sc-progress");
+  function draw() {
+    steps.forEach(function (el) {
+      var n = parseInt(el.getAttribute("data-step"), 10);
+      el.hidden = n > cur;
+      el.classList.toggle("now", n === cur);
+    });
+    prev.disabled = cur <= 1;
+    next.disabled = cur >= max;
+    progress.textContent = cur + " / " + max;
+  }
+  prev.addEventListener("click", function () { if (cur > 1) { cur--; draw(); } });
+  next.addEventListener("click", function () { if (cur < max) { cur++; draw(); } });
+  draw();
+
+  /* Dependency demo: main issue unblocks when all blockers are resolved. */
+  var deps = Array.prototype.slice.call(document.querySelectorAll("#deptree .dep"));
+  var state = document.getElementById("dep-state");
+  function depDraw() {
+    var done = deps.filter(function (d) { return d.checked; }).length;
+    var key = done === deps.length ? "ready" : (done > 0 ? "partial" : "blocked");
+    state.textContent = state.getAttribute("data-" + key);
+    state.className = "state " + (key === "ready" ? "ready" : "blocked");
+  }
+  deps.forEach(function (d) { d.addEventListener("change", depDraw); });
+  depDraw();
+})();
+</script>
+{% endblock %}

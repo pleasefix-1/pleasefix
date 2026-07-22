@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PleaseFix — the public issue tracker for Malaysia</title>
+<meta name="description" content="Report community problems, track every agency filing publicly, and keep issues open until they are actually fixed.">
+<style>
+  :root {
+    --fg: #1a1a1a; --bg: #ffffff; --accent: #0b6e4f; --accent-2: #0b4f6e;
+    --muted: #5a5a5a; --card: #f4f6f5; --border: #dde3e0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fg: #eaeaea; --bg: #121212; --accent: #4cc38a; --accent-2: #6fb6d8;
+      --muted: #a0a0a0; --card: #1d211f; --border: #2e3532;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, sans-serif;
+         color: var(--fg); background: var(--bg); line-height: 1.6; }
+  main { max-width: 46rem; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .hero { padding: 4rem 0 2rem; }
+  .hero h1 { font-size: 2.4rem; margin: 0 0 .25rem; }
+  .hero h1 span { color: var(--accent); }
+  .hero .tagline { font-size: 1.25rem; color: var(--muted); margin: 0 0 1rem; }
+  .hero .bm { font-style: italic; color: var(--muted); }
+  h2 { margin-top: 2.5rem; font-size: 1.4rem; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+  @media (max-width: 40rem) { .compare { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--border);
+          border-radius: .6rem; padding: 1rem 1.2rem; }
+  .card h3 { margin: 0 0 .5rem; font-size: 1rem; }
+  .card.official h3 { color: var(--muted); }
+  .card.community h3 { color: var(--accent); }
+  .card ul { margin: .3rem 0 0; padding-left: 1.2rem; }
+  .card li { margin: .25rem 0; }
+  .closed { color: #b3423a; font-weight: 600; }
+  .open { color: var(--accent); font-weight: 600; }
+  .quote { border-left: 4px solid var(--accent); padding: .4rem 1rem;
+           margin: 1.5rem 0; font-size: 1.15rem; font-style: italic; background: var(--card); }
+  .deps { font-family: ui-monospace, monospace; font-size: .95rem;
+          background: var(--card); border: 1px solid var(--border);
+          border-radius: .6rem; padding: 1rem 1.2rem; overflow-x: auto; white-space: pre; }
+  .points li { margin: .6rem 0; }
+  .cta { margin-top: 2.5rem; padding: 1.5rem; border-radius: .6rem;
+         background: var(--card); border: 1px solid var(--border); }
+  .cta h2 { margin-top: 0; }
+  a { color: var(--accent-2); }
+  .btn { display: inline-block; margin: .5rem .5rem 0 0; padding: .55rem 1rem;
+         border-radius: .5rem; background: var(--accent); color: #fff;
+         text-decoration: none; font-weight: 600; }
+  .btn.alt { background: transparent; color: var(--accent);
+             border: 2px solid var(--accent); }
+  footer { color: var(--muted); font-size: .85rem; margin-top: 3rem;
+           border-top: 1px solid var(--border); padding-top: 1rem; }
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>Please<span>Fix</span></h1>
+    <p class="tagline">The public, community-owned issue tracker for Malaysia.
+      Open until it's actually fixed.</p>
+    <p class="bm">Penjejak isu komuniti yang terbuka — kekal terbuka sehingga benar-benar selesai.</p>
+  </div>
+
+  <h2>Official channels close tickets. Communities fix problems.</h2>
+  <div class="quote">"I cannot cross the road from the LRT station because of a barrier."</div>
+
+  <div class="compare">
+    <div class="card official">
+      <h3>Official channel</h3>
+      <ul>
+        <li>Filed with one agency</li>
+        <li>"Not our jurisdiction / private company"</li>
+        <li><span class="closed">Ticket closed.</span> Barrier still there.</li>
+      </ul>
+    </div>
+    <div class="card community">
+      <h3>PleaseFix</h3>
+      <ul>
+        <li>SISPAA: rejected · MPSJ: filed · Prasarana: filed · Councillor: raised</li>
+        <li>Every filing, date, and photo on one public record</li>
+        <li><span class="open">Issue stays open</span> until the crossing exists.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>What makes it different</h2>
+  <ul class="points">
+    <li><strong>Public by default.</strong> Every issue is a shared community
+      record — anyone can see it, add photos and updates, or follow up on an
+      issue an agency already "closed". A complaint to an agency is a private
+      conversation; a PleaseFix issue belongs to everyone it affects.</li>
+    <li><strong>Evidence that can't be quietly closed.</strong> Councils have
+      closed tickets as "done" when the contractor did nothing. A public
+      tracker keeps the dated photos and the dates every complaint was lodged
+      — permanently, visibly.</li>
+    <li><strong>Cross-jurisdictional by design.</strong> .gov.my systems are
+      silos; coordinating them takes joint task forces (or, once, a whole
+      agency — SPAD). PleaseFix tracks one issue across every responsible
+      agency at once, with each official reference number attached.</li>
+    <li><strong>Issues can be goals, with dependencies.</strong> No government
+      system can represent "I want to walk from A to B":</li>
+  </ul>
+
+  <div class="deps">I can't walk from A to B          [main issue — open]
+├─ blocked by: no crossing at Y     (MPSJ — filed)
+└─ blocked by: streetlights out at Z (TNB — filed)</div>
+
+  <ul class="points">
+    <li><strong>Community metadata.</strong> Tags beyond any agency's
+      category codes — accessibility/a11y, CEDAW, public transport,
+      environment — so advocates can see, e.g., every accessibility issue in
+      Subang at once.</li>
+    <li><strong>It teaches jurisdiction.</strong> Who is responsible for what
+      is tribal knowledge. PleaseFix explains it per issue type and area, and
+      records the official reference numbers so the government-side trail is
+      trackable from the public one.</li>
+  </ul>
+
+  <div class="cta">
+    <h2>Developers: this is built to be built on</h2>
+    <p>PleaseFix is open source and deliberately contributor-friendly:
+      Django + HTMX, strict types, one <code>docker compose up</code> for the
+      entire stack, and CI that handles formatting and style so reviews are
+      about ideas. Channel adapters and dispatch adapters are designed as
+      safe first contributions — one agency's integration breaking never
+      takes down another's.</p>
+    <p>Prefer building your own thing? The <strong>public API is the
+      product</strong>: an OpenAPI-typed <code>/api/v1</code>, generated
+      SDKs, thin client templates, and a hosted sandbox with seeded
+      Malaysian data — build a neighbourhood dashboard or advocacy view
+      without ever installing PostGIS. Community clients get listed;
+      recognition is the currency.</p>
+    <a class="btn" href="https://github.com/pleasefix">Source &amp; contributing</a>
+    <a class="btn alt" href="docs/WHY.md">Read the full why</a>
+  </div>
+
+  <footer>
+    PleaseFix — an independent, open civic platform. Inspired by
+    FixMyStreet. This page is a static file; the platform itself lives in
+    the repository.
+  </footer>
+</main>
+</body>
+</html>
