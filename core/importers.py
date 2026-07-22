@@ -17,6 +17,8 @@ from dataclasses import dataclass, field
 from urllib.parse import quote, urlparse
 
 import httpx
+from django.conf import settings
+from django.core.cache import cache
 
 MAX_BYTES = 5 * 1024 * 1024
 MAX_PHOTO_BYTES = 8 * 1024 * 1024
@@ -55,15 +57,19 @@ def _assert_public_http_url(url: str) -> None:
             raise ImportError_("That address is not reachable from here.")
 
 
-def safe_get(url: str, max_bytes: int = MAX_BYTES) -> httpx.Response:
+def safe_get(
+    url: str, max_bytes: int = MAX_BYTES, headers: dict[str, str] | None = None
+) -> httpx.Response:
     """GET with an SSRF check on every redirect hop and a size cap."""
+    request_headers = {"User-Agent": USER_AGENT, "Accept-Language": "en, ms"}
+    request_headers.update(headers or {})
     for _ in range(MAX_REDIRECTS + 1):
         _assert_public_http_url(url)
         response = httpx.get(
             url,
             timeout=TIMEOUT,
             follow_redirects=False,
-            headers={"User-Agent": USER_AGENT, "Accept-Language": "en, ms"},
+            headers=request_headers,
         )
         if response.is_redirect:
             url = str(response.next_request.url) if response.next_request else ""
@@ -99,9 +105,54 @@ def _og_tags(page: str) -> dict[str, str]:
     return tags
 
 
+def _reddit_token() -> str | None:
+    """App-only OAuth token when credentials are configured — Reddit
+    blocks unauthenticated requests from many server IP ranges, but the
+    authenticated API works everywhere. Create a 'script' app at
+    reddit.com/prefs/apps and set REDDIT_CLIENT_ID/REDDIT_CLIENT_SECRET."""
+    client_id = getattr(settings, "REDDIT_CLIENT_ID", "")
+    client_secret = getattr(settings, "REDDIT_CLIENT_SECRET", "")
+    if not client_id or not client_secret:
+        return None
+    token = cache.get("reddit_app_token")
+    if isinstance(token, str):
+        return token
+    response = httpx.post(
+        "https://www.reddit.com/api/v1/access_token",
+        data={"grant_type": "client_credentials"},
+        auth=(client_id, client_secret),
+        headers={"User-Agent": USER_AGENT},
+        timeout=TIMEOUT,
+    )
+    response.raise_for_status()
+    token = str(response.json()["access_token"])
+    cache.set("reddit_app_token", token, timeout=50 * 60)
+    return token
+
+
 def _import_reddit(url: str) -> ImportCandidate:
-    api_url = url.split("?")[0].rstrip("/") + ".json"
-    data = safe_get(api_url).json()
+    token = _reddit_token()
+    if token:
+        match = re.search(r"/comments/([a-z0-9]+)", url)
+        if not match:
+            raise ImportError_("That doesn't look like a Reddit post link.")
+        data = safe_get(
+            f"https://oauth.reddit.com/comments/{match.group(1)}?raw_json=1&limit=1",
+            headers={"Authorization": f"Bearer {token}"},
+        ).json()
+    else:
+        api_url = url.split("?")[0].rstrip("/") + ".json"
+        try:
+            data = safe_get(api_url).json()
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 403:
+                raise ImportError_(
+                    "Reddit blocks unauthenticated fetches from this server. "
+                    "The site admin can enable Reddit imports by setting "
+                    "REDDIT_CLIENT_ID/REDDIT_CLIENT_SECRET — or copy the post "
+                    "details into the form manually."
+                ) from exc
+            raise
     post = data[0]["data"]["children"][0]["data"]
     candidate = ImportCandidate(
         source_url=url,
