@@ -4,8 +4,10 @@ Architecture and product decisions, with rationale. Motivation and
 positioning live in [WHY.md](WHY.md). Section numbers (§) are referenced
 from code comments and other docs.
 
-*New contributor?* You probably want the interactive walkthrough
-(`site/dev.html`) first, then [CONTRIBUTING](../CONTRIBUTING.md) — the
+*New contributor?* You probably want the walkthrough
+([WALKTHROUGH.md](WALKTHROUGH.md); interactive version at
+`/site/dev.html` on a running instance) first, then
+[CONTRIBUTING](../CONTRIBUTING.md) — the
 culture (stone soup: informal, scratch your own itch), the step-by-step
 first-PR guide, and [good first issues](GOOD_FIRST_ISSUES.md). This
 document is the reference you come back to.

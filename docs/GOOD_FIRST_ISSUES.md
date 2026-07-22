@@ -4,9 +4,10 @@ Small, self-contained tasks that are a good way to learn the codebase.
 Each names the files you'll touch and how to know you're done. Pick one,
 say so on the tracker so nobody doubles up, and open a PR — the
 step-by-step guide from fork to review is in
-[CONTRIBUTING](../CONTRIBUTING.md), the role tracks are at
-`site/contribute.html`, and the interactive walkthrough of how
-everything fits together is at `site/dev.html`.
+[CONTRIBUTING](../CONTRIBUTING.md), the role tracks are in
+[TRACKS.md](TRACKS.md), and the walkthrough of how everything fits
+together is [WALKTHROUGH.md](WALKTHROUGH.md) (interactive versions of
+both live under `/site/` on any running instance).
 
 These are suggestions, not assignments — the culture is stone soup
 (see CONTRIBUTING): informal, no grand roadmap, scratch your own itch.

@@ -36,6 +36,18 @@ def test_every_core_model_is_in_the_walkthrough() -> None:
     )
 
 
+def test_every_core_model_is_in_the_markdown_mirror() -> None:
+    # docs/WALKTHROUGH.md is the GitHub-readable mirror of site/dev.html.
+    md = (Path(settings.BASE_DIR) / "docs" / "WALKTHROUGH.md").read_text()
+    documented = set(re.findall(r"\*\*(\w+)\*\*", md))
+    actual = {m.__name__ for m in apps.get_app_config("core").get_models()}
+    missing = actual - documented
+    assert not missing, (
+        f"docs/WALKTHROUGH.md is missing model row(s) for: {sorted(missing)}. "
+        "It mirrors site/dev.html — update both in the same PR."
+    )
+
+
 @pytest.mark.django_db
 def test_walkthrough_is_served_and_linked_from_the_app() -> None:
     client = Client()

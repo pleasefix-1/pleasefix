@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PleaseFix\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-22 22:55+0800\n"
+"POT-Creation-Date: 2026-07-22 23:01+0800\n"
 "PO-Revision-Date: 2026-07-22 08:45+0800\n"
 "Last-Translator: PleaseFix Maintainers "
 "<pleasefix-1@users.noreply.github.com>\n"
@@ -534,10 +534,9 @@ msgid ""
 "          rail operator (filed); local councillor (raised). Each gets its\n"
 "          official reference number."
 msgstr ""
-"Failan dihantar serentak dan dijejak pada isu: SISPAA, portal aduan "
-"kerajaan (ditolak); majlis (difailkan); pengendali rel (difailkan); ahli "
-"majlis tempatan (dibangkitkan). Setiap satu mendapat nombor rujukan "
-"rasminya."
+"Failan dihantar serentak dan dijejak pada isu: SISPAA, portal aduan kerajaan "
+"(ditolak); majlis (difailkan); pengendali rel (difailkan); ahli majlis "
+"tempatan (dibangkitkan). Setiap satu mendapat nombor rujukan rasminya."
 
 #: templates/about.html:104
 msgid ""
@@ -849,6 +848,10 @@ msgid "How it works (developers)"
 msgstr "Cara ia berfungsi (pembangun)"
 
 #: templates/base.html:123
+msgid "Contribute"
+msgstr "Menyumbang"
+
+#: templates/base.html:124
 msgid "Source code"
 msgstr "Kod sumber"
 

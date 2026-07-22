@@ -6,8 +6,10 @@ burden and small blast radius** — most of the "is this code okay?"
 judgment is automated, so humans review intent, not formatting.
 
 **New here?** Start with the role-based onboarding guide
-(`site/contribute.html` — frontend, backend, or AI/integrations, each
-with a 10-minute setup and a first-change walkthrough), then pick
+([docs/TRACKS.md](docs/TRACKS.md); interactive version at
+`/site/contribute.html` on a running instance — frontend, backend, or
+AI/integrations, each with a 10-minute setup and a first-change
+walkthrough), then pick
 something from [docs/GOOD_FIRST_ISSUES.md](docs/GOOD_FIRST_ISSUES.md)
 (also rendered at `site/good-first-issues.html`, `/site/` on any
 running instance).
@@ -93,11 +95,12 @@ listed in the registry — recognition is the currency.
    `uv run python manage.py migrate && uv run python manage.py seed_sample_data`.
    (Windows: see `docs/ONBOARDING-WINDOWS.md`. Full stack instead:
    `docker compose up`.)
-3. **Look around** — the interactive walkthrough (`site/dev.html`, or
+3. **Look around** — the developer walkthrough
+   ([docs/WALKTHROUGH.md](docs/WALKTHROUGH.md); interactive version at
    `/site/dev.html` on your running instance) shows the architecture,
    a report's journey, and every data model in ~10 minutes.
 4. **Pick something** — a [good first issue](docs/GOOD_FIRST_ISSUES.md),
-   a role track (`site/contribute.html`), or your own itch. Say so on
+   a role track ([docs/TRACKS.md](docs/TRACKS.md)), or your own itch. Say so on
    the issue tracker so nobody doubles up.
 5. **Branch and hack** — `git switch -c fix/streetlight-form`. Run
    `uv run python manage.py runserver` and poke at

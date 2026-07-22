@@ -52,7 +52,8 @@ artifacts: `api/openapi.json` (regenerate when API surface changes) and
 | `locale_vendor/` | BM translations for third-party apps (allauth) | |
 | `core/tests/`, `conftest.py` | pytest + pytest-django + factory-boy | tests hit real PostGIS, no mocked ORM |
 | `docs/`, `site/` | public docs & onboarding | reference concrete file paths — update them when layout changes |
-| `site/dev.html` | interactive developer walkthrough (architecture, report journey, data model) | maintained artifact: `core/tests/test_dev_site.py` fails CI if a core model is missing from it or a referenced file moved — update it in the same PR |
+| `site/dev.html` + `docs/WALKTHROUGH.md` | developer walkthrough: interactive page + its GitHub-readable markdown mirror | maintained artifacts: `core/tests/test_dev_site.py` fails CI if a core model is missing from either, or a file dev.html references moved — update both in the same PR |
+| `docs/TRACKS.md` | markdown mirror of `site/contribute.html` (role tracks) | keep in sync when the tracks change |
 | `.github/workflows/ci.yml` | the gauntlet above | runs with `DEBUG=true` |
 
 ## Rules that bite
@@ -88,8 +89,11 @@ artifacts: `api/openapi.json` (regenerate when API surface changes) and
   security-review pass over your diff before pushing is worth it —
   abuse-control and identity-handling code is security-sensitive.
 - When you change file layout or commands, update this file,
-  `site/contribute.html`, `site/dev.html`, and
-  `docs/GOOD_FIRST_ISSUES.md` in the same change — onboarding docs that
-  lie are worse than none. For `dev.html` the sync is enforced:
-  `core/tests/test_dev_site.py` fails when a model is missing from the
-  walkthrough or a referenced file moved.
+  `site/contribute.html` (+ its mirror `docs/TRACKS.md`), `site/dev.html`
+  (+ its mirror `docs/WALKTHROUGH.md`), and `docs/GOOD_FIRST_ISSUES.md`
+  in the same change — onboarding docs that lie are worse than none.
+  Convention: HTML pages under `site/` are the interactive versions the
+  running app serves; every one has a markdown twin under `docs/` that
+  reads well on GitHub, and markdown docs link to markdown. For the
+  walkthrough the sync is enforced: `core/tests/test_dev_site.py` fails
+  when a model is missing from either version or a referenced file moved.
