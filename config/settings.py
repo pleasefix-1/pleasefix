@@ -56,6 +56,9 @@ if env("GEOS_LIBRARY_PATH") and Path(env("GEOS_LIBRARY_PATH")).exists():
     GEOS_LIBRARY_PATH = env("GEOS_LIBRARY_PATH")
 
 INSTALLED_APPS = [
+    # core precedes staticfiles so its fail-fast runserver override wins
+    # (management-command precedence goes to the app listed first).
+    "core",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -67,7 +70,6 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "django_htmx",
-    "core",
     "api",
 ]
 
