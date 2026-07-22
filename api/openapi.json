@@ -16,6 +16,10 @@
             "title": "Id",
             "type": "string"
           },
+          "is_claimed": {
+            "title": "Is Claimed",
+            "type": "boolean"
+          },
           "latitude": {
             "title": "Latitude",
             "type": "number"
@@ -69,6 +73,7 @@
           "longitude",
           "reporter_name",
           "source_url",
+          "is_claimed",
           "created_at",
           "photos",
           "updates"
@@ -81,6 +86,10 @@
           "author_name": {
             "title": "Author Name",
             "type": "string"
+          },
+          "by_reporter": {
+            "title": "By Reporter",
+            "type": "boolean"
           },
           "created_at": {
             "format": "date-time",
@@ -106,6 +115,7 @@
         "required": [
           "text",
           "author_name",
+          "by_reporter",
           "photo",
           "created_at"
         ],

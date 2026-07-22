@@ -30,6 +30,7 @@ class VersionOut(Schema):
 class UpdateOut(Schema):
     text: str
     author_name: str
+    by_reporter: bool
     photo: str | None
     created_at: datetime
 
@@ -44,6 +45,7 @@ class IssueOut(Schema):
     longitude: float
     reporter_name: str
     source_url: str
+    is_claimed: bool
     created_at: datetime
     photos: list[str]
     updates: list[UpdateOut]
@@ -60,12 +62,14 @@ def _issue_out(issue: Issue) -> IssueOut:
         longitude=issue.longitude,
         reporter_name=issue.reporter_name,
         source_url=issue.source_url,
+        is_claimed=issue.is_claimed,
         created_at=issue.created_at,
         photos=[p.image.url for p in issue.photos.all()],
         updates=[
             UpdateOut(
                 text=u.text,
                 author_name=u.author_name,
+                by_reporter=u.by_reporter,
                 photo=u.photo.url if u.photo else None,
                 created_at=u.created_at,
             )
