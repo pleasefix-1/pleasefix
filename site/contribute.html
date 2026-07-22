@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contribute to PleaseFix — developer onboarding</title>
+<meta name="description" content="Role-based guide for frontend, backend, and AI developers to get familiar with the PleaseFix codebase and make a first contribution.">
+<style>
+  :root {
+    --fg: #1a1a1a; --bg: #ffffff; --accent: #0b6e4f; --link: #0a5c42;
+    --muted: #5a5a5a; --card: #f4f6f5; --border: #dde3e0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fg: #eaeaea; --bg: #121212; --accent: #4cc38a; --link: #7dd3a8;
+      --muted: #a0a0a0; --card: #1d211f; --border: #2e3532;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, sans-serif;
+         color: var(--fg); background: var(--bg); line-height: 1.6; }
+  main { max-width: 50rem; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  a { color: var(--link); }
+  .hero { padding: 3rem 0 1rem; }
+  .hero h1 { font-size: 2.1rem; margin: 0 0 .3rem; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { font-size: 1.15rem; color: var(--muted); }
+  h2 { margin-top: 2.5rem; font-size: 1.35rem; border-bottom: 1px solid var(--border);
+       padding-bottom: .3rem; }
+  h3 { margin-top: 1.6rem; font-size: 1.1rem; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, monospace; }
+  code { background: var(--card); padding: .1rem .35rem; border-radius: .3rem; font-size: .9em; }
+  pre { background: var(--card); border: 1px solid var(--border); border-radius: .5rem;
+        padding: .9rem 1.1rem; overflow-x: auto; font-size: .9rem; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: .35rem 0; }
+  .tracks { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+            gap: 1rem; margin: 1.5rem 0; }
+  .track { border: 1px solid var(--border); border-radius: .6rem; background: var(--card);
+           padding: 1rem 1.2rem; }
+  .track h3 { margin: 0 0 .4rem; color: var(--accent); }
+  .track p { margin: .2rem 0; font-size: .95rem; color: var(--muted); }
+  .track a { font-weight: 600; }
+  .note { border-left: 4px solid var(--accent); background: var(--card);
+          padding: .6rem 1rem; border-radius: .4rem; margin: 1.2rem 0; }
+  .map { font-size: .95rem; }
+  .map dt { font-weight: 700; margin-top: .6rem; }
+  .map dd { margin: 0 0 .2rem; color: var(--muted); }
+  footer { color: var(--muted); font-size: .85rem; margin-top: 3rem;
+           border-top: 1px solid var(--border); padding-top: 1rem; }
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>Contribute to Please<span>Fix</span></h1>
+    <p>PleaseFix is built so developers of every level can contribute
+      safely. Pick the track that fits you, make one small change, and
+      grow from there.</p>
+  </div>
+
+  <p><a href="index.html">← What PleaseFix is</a> · the code lives at
+    <a href="https://github.com/pleasefix-1/pleasefix">github.com/pleasefix-1/pleasefix</a></p>
+
+  <h2>First, get it running (10 minutes)</h2>
+  <p>The whole stack is one command — Django app, PostgreSQL+PostGIS,
+    Redis, object storage, and Caddy. You never install Python, GDAL, or
+    a database on your machine.</p>
+  <pre>git clone https://github.com/pleasefix-1/pleasefix.git
+cd pleasefix
+cp .env.example .env
+docker compose up --build          # → http://localhost:8000
+docker compose exec app python manage.py seed_sample_data   # a couple of demo issues</pre>
+  <p>On Windows, follow <a href="https://github.com/pleasefix-1/pleasefix/blob/main/docs/ONBOARDING-WINDOWS.md"><code>docs/ONBOARDING-WINDOWS.md</code></a>
+    (WSL2 + Docker, or a one-click VS Code Dev Container). Run the checks
+    anytime with:</p>
+  <pre>docker compose exec app sh -c "ruff check . && mypy . && pytest"</pre>
+
+  <div class="note">
+    <strong>How the code is shaped.</strong> It's a modular monolith. The
+    <em>protected core</em> (report lifecycle, geo queries, auth, dispatch
+    framework) is maintainer-owned; <em>contribution zones</em> — channel
+    adapters, client templates, config, translations, and everything
+    below — are where you start and earn your way inward. CI applies
+    formatting and types for you, so review is about ideas, not style.
+  </div>
+
+  <h2>Where things live</h2>
+  <dl class="map">
+    <dt><code>core/models.py</code></dt><dd>the domain: Issue, IssueUpdate, Flag, reporter secrets, managers.</dd>
+    <dt><code>core/views.py</code> + <code>templates/</code></dt><dd>the server-rendered pages (report, browse, detail).</dd>
+    <dt><code>api/v1.py</code></dt><dd>the public django-ninja API; schema is a reviewed artifact (<code>api/openapi.json</code>).</dd>
+    <dt><code>core/importers.py</code></dt><dd>import an issue from a social/web link (Reddit, X, OpenGraph).</dd>
+    <dt><code>core/abuse.py</code> + <code>docs/ABUSE.md</code></dt><dd>login-free anti-abuse: honeypot, throttles, flags.</dd>
+    <dt><code>docs/DESIGN.md</code>, <code>docs/WHY.md</code></dt><dd>architecture, decisions, and the motivation.</dd>
+  </dl>
+
+  <h2>Pick a track</h2>
+  <div class="tracks">
+    <div class="track">
+      <h3>🎨 Frontend</h3>
+      <p>HTML, CSS, HTMX, progressive enhancement, bilingual UI.</p>
+      <p><a href="#frontend">Start here →</a></p>
+    </div>
+    <div class="track">
+      <h3>⚙️ Backend</h3>
+      <p>Django, GeoDjango/PostGIS, the API, background jobs.</p>
+      <p><a href="#backend">Start here →</a></p>
+    </div>
+    <div class="track">
+      <h3>🤖 AI / integrations</h3>
+      <p>The public API, clients &amp; bots, LLM-assisted features.</p>
+      <p><a href="#ai">Start here →</a></p>
+    </div>
+  </div>
+
+  <h2 id="frontend">🎨 Frontend track</h2>
+  <p><strong>You'll work in:</strong> <code>templates/</code>,
+    <code>static/</code>, <code>core/forms.py</code>. The app is
+    server-rendered Django templates with HTMX for enhancement — the
+    lowest-skill-floor path on purpose. Two rules: every user-facing
+    string is wrapped in <code>{% translate %}</code>/<code>{% blocktranslate %}</code>
+    (Bahasa Melayu + English are both first-class), and everything must
+    still work with JavaScript off.</p>
+  <h3>Your first change: a status badge colour</h3>
+  <ol>
+    <li>Open <code>http://localhost:8000/issues/</code> — you'll see the
+      seeded issues with status pills.</li>
+    <li>Find the <code>.status</code> rules in
+      <code>templates/issues/list.html</code> and tweak the "fixed" colour.</li>
+    <li>Reload — the dev server auto-reloads. Toggle your OS dark mode to
+      check both themes.</li>
+    <li>Add a BM string if you added any English text:
+      <code>docker compose exec app python manage.py makemessages -l ms</code>,
+      translate in <code>locale/ms/LC_MESSAGES/django.po</code>.</li>
+  </ol>
+  <p>Ready for a real one? Good frontend starters: consolidating the
+    inline CSS into <code>static/css/site.css</code>, or wiring the flag
+    button through HTMX. See
+    <a href="https://github.com/pleasefix-1/pleasefix/blob/main/docs/GOOD_FIRST_ISSUES.md">GOOD_FIRST_ISSUES.md</a>.</p>
+
+  <h2 id="backend">⚙️ Backend track</h2>
+  <p><strong>You'll work in:</strong> <code>core/models.py</code>,
+    <code>core/views.py</code>, <code>api/v1.py</code>,
+    <code>core/importers.py</code>. Strict typing (mypy) and ORM-only (no
+    raw SQL) are enforced in CI. Migrations ship in their own PR. Geo data
+    is GeoDjango on PostGIS — points are <code>PointField(geography=True)</code>.</p>
+  <h3>Your first change: add a field to the API</h3>
+  <ol>
+    <li>Open <code>http://localhost:8000/api/v1/docs</code> — the live API
+      explorer. Hit <code>GET /issues</code>.</li>
+    <li>In <code>api/v1.py</code>, add a field to <code>IssueOut</code>
+      (e.g. <code>status_display</code>) and populate it in
+      <code>_issue_out</code>.</li>
+    <li>Regenerate the reviewed schema:
+      <code>docker compose exec app python manage.py export_openapi_schema</code>
+      — CI fails if <code>api/openapi.json</code> is stale.</li>
+    <li>Add a line to a test in <code>core/tests/</code> and run
+      <code>pytest</code>.</li>
+  </ol>
+  <p>Then try: the Reddit comment-permalink fix, the first Celery task
+    (EXIF-strip photos), or a PostGIS nearby-issues query — all in
+    <a href="https://github.com/pleasefix-1/pleasefix/blob/main/docs/GOOD_FIRST_ISSUES.md">GOOD_FIRST_ISSUES.md</a>.</p>
+
+  <h2 id="ai">🤖 AI / integrations track</h2>
+  <p><strong>The product for you is the API.</strong> PleaseFix is
+    designed so third-party clients, bots, and AI features are
+    first-class — you don't need to touch the core to build on it. The
+    OpenAPI schema is at <code>api/openapi.json</code>, live docs at
+    <code>/api/v1/docs</code>.</p>
+  <h3>Your first change: talk to the API</h3>
+  <ol>
+    <li>With the stack running, list issues:
+      <code>curl http://localhost:8000/api/v1/issues</code>.</li>
+    <li>Write a short script that reads the JSON and prints each issue's
+      reference code and location — drop it in a new <code>examples/</code>
+      directory.</li>
+    <li>Submit a report through the form flow, then fetch it back by its
+      public id: <code>GET /api/v1/issues/&lt;id&gt;</code>.</li>
+  </ol>
+  <p>Bigger swings (all opt-in, none block the core path): LLM category
+    suggestion via the Claude API, an outbound status-change webhook, or a
+    generated SDK. When you build an LLM feature, keep it behind a setting
+    and degrade gracefully when unconfigured — see
+    <a href="https://github.com/pleasefix-1/pleasefix/blob/main/docs/GOOD_FIRST_ISSUES.md">GOOD_FIRST_ISSUES.md</a>.
+    Community clients get listed in the registry — recognition is the
+    currency.</p>
+
+  <h2>Opening the pull request</h2>
+  <ol>
+    <li>Branch, make your change, keep <code>ruff</code>/<code>mypy</code>/<code>pytest</code>
+      green.</li>
+    <li>Commit with <a href="https://www.conventionalcommits.org/">Conventional Commits</a>
+      (<code>feat(api): …</code>, <code>fix(ui): …</code>), one logical
+      change per commit.</li>
+    <li>Open the PR. CI runs the same checks; a maintainer reviews intent.</li>
+  </ol>
+
+  <footer>
+    This onboarding map points at real files — if you find it out of date
+    with the code, fixing it is itself a great first PR. PleaseFix is an
+    independent, open civic platform (Apache-2.0).
+  </footer>
+</main>
+</body>
+</html>

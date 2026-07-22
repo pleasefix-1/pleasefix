@@ -5,6 +5,11 @@ levels can contribute safely. The design optimises for **low review
 burden and small blast radius** — most of the "is this code okay?"
 judgment is automated, so humans review intent, not formatting.
 
+**New here?** Start with the role-based onboarding guide
+(`site/contribute.html` — frontend, backend, or AI/integrations, each
+with a 10-minute setup and a first-change walkthrough), then pick
+something from [docs/GOOD_FIRST_ISSUES.md](docs/GOOD_FIRST_ISSUES.md).
+
 ## Where to contribute (trust gradient)
 
 - **Contribution zones — start here:**
