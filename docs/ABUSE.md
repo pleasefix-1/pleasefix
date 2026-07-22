@@ -22,11 +22,11 @@ document describes what exists now and where it goes.
 | Layer | Mechanism | Where |
 |---|---|---|
 | Bots | Honeypot field on report + update forms; filled → silent drop | `core/forms.py`, `core/abuse.py` |
-| Floods | Per-IP fixed-window throttles: reports 5/h, updates 10/h, flags 30/h, imports 10/h (cache-backed: Redis in compose, locmem in dev) | `core/abuse.py`, views |
+| Floods | Per-IP fixed-window throttles (limits in `settings.THROTTLE_LIMITS`), fail **closed** if the cache errors. The client IP is `REMOTE_ADDR` unless `TRUSTED_PROXY_COUNT>0` — **X-Forwarded-For is not trusted by default**, so it can't be spoofed to forge identities. Requires a shared cache (Redis) in production. | `core/abuse.py`, views |
 | Bad content | "Report abuse" on every issue and update, no login; flags deduped per IP-hash; **3 distinct flags auto-hides** pending review | `Flag` model, flag views |
 | Review | Admin: hidden filters, unhide action, flag list; hidden content excluded from all public queries via `Issue.public()` | `core/admin.py` |
 | Trust | **Reporter secret** issued once per report (stored salted-hashed): verifies follow-ups ("✓ original reporter" badge) and claims the report into an account after login. Claimed reports and verified updates need 5 flags to auto-hide instead of 3 — verified identity buys flag-bomb resistance | `Issue.claim_token_hash/owner`, `core/views.py` |
-| SSRF | URL-import fetches: http(s) only, public addresses only, checked per redirect hop, size caps | `core/importers.py` |
+| SSRF | URL-import fetches: http(s) only; DNS validated (all resolved addresses must be global) and **pinned** for the request against rebinding/TOCTOU; redirects re-checked per hop; body streamed with a per-chunk size cap | `core/importers.py` |
 
 ## Known gaps / next steps (roughly in order)
 
