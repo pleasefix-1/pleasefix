@@ -20,7 +20,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(
     DEBUG=(bool, False),
-    ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
+    # "[::1]" included: forwarded ports (VS Code dev container, ssh -L)
+    # commonly open the browser on IPv6 localhost.
+    ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1", "[::1]"]),
     TIME_ZONE=(str, "Asia/Kuala_Lumpur"),
     LANGUAGE_CODE=(str, "en"),
     # Map defaults: deploy-specific, never code literals (DESIGN §2).

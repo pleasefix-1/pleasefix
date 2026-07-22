@@ -45,3 +45,9 @@ def test_api_version(client: Client) -> None:
     response = client.get("/api/v1/version")
     assert response.status_code == 200
     assert response.json()["name"] == "pleasefix"
+
+
+def test_ipv6_localhost_is_an_allowed_host(client: Client) -> None:
+    """Forwarded ports (VS Code dev container, ssh -L) open the browser
+    on IPv6 localhost — '[::1]:8000' must not be a DisallowedHost."""
+    assert client.get("/healthz", headers={"host": "[::1]:8000"}).status_code == 200
