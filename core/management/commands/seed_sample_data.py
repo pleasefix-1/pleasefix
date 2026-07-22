@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 from django.conf import settings
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import MultiPolygon, Point, Polygon
 from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
 
-from core.models import Issue
+from core.models import Area, Body, Category, CategoryGroup, Issue
 
 SAMPLE_PHOTO = Path(__file__).resolve().parents[2] / "fixtures" / "sample" / "longkang-ss2-24.jpg"
 
@@ -62,6 +62,7 @@ class Command(BaseCommand):
         if not settings.DEBUG and not options["force"]:
             raise CommandError("Refusing to seed sample data with DEBUG off (use --force).")
 
+        self._seed_routing()
         created = 0
         for sample in SAMPLE_ISSUES:
             if Issue.objects.filter(title=sample.title).exists():
@@ -77,3 +78,29 @@ class Command(BaseCommand):
                     issue.photos.create(image=File(f, name=sample.photo.name))
             created += 1
         self.stdout.write(f"seeded {created} issue(s), {Issue.objects.count()} total")
+
+    def _seed_routing(self) -> None:
+        """One sample area/body/category chain so the routing admin and
+        the report form have something to show. Real boundaries are
+        imported/drawn by admins — this is a dev-only rough bbox."""
+        if Body.objects.exists():
+            return
+        area = Area.objects.create(
+            name="Petaling Jaya (sample bbox)",
+            kind=Area.Kind.COUNCIL,
+            boundary=MultiPolygon(Polygon.from_bbox((101.56, 3.05, 101.68, 3.17)), srid=4326),
+        )
+        body = Body.objects.create(
+            name="MBPJ (sample)", slug="mbpj-sample", dispatch_email="aduan@example.invalid"
+        )
+        body.areas.add(area)
+        infra = CategoryGroup.objects.create(name="Roads & drains", order=1)
+        for name, group in [
+            ("Longkang tersumbat / blocked drain", infra),
+            ("Pothole", infra),
+            ("Streetlight not working", None),
+        ]:
+            Category.objects.create(
+                body=body, name=name, group=group, state=Category.State.CONFIRMED
+            )
+        self.stdout.write("seeded sample routing (1 area, 1 body, 3 categories)")
