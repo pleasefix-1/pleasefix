@@ -75,10 +75,16 @@ artifacts: `api/openapi.json` (regenerate when API surface changes) and
 
 ## For agents specifically
 
-- **Use an LSP, not grep-and-hope.** `basedpyright`/`pyright` and
-  `ruff server` work out of the box against `.venv` (created by
-  `uv sync`). Prefer go-to-definition/references over text search for
-  Django models and views; `mypy` strict is the type oracle.
+- **Use an LSP, not grep-and-hope.** `basedpyright`/`pyright`, Pylance,
+  and `ruff server` resolve against `.venv` (created by `uv sync`) via
+  the committed `pyrightconfig.json` (`venvPath`/`venv`) — without it the
+  analyzer picks the wrong interpreter and reports Django imports (e.g.
+  `django.apps`) as unresolved. In VS Code, if imports still show red:
+  **Python: Select Interpreter → `.venv/bin/python`**, then **Python:
+  Restart Language Server** (the `.venv` is created in `postCreateCommand`,
+  after first container open). Prefer go-to-definition/references over
+  text search for Django models and views; `mypy` strict is the type
+  oracle.
 - **Small diffs win.** The review model here is "humans review intent,
   tooling reviews everything else" — keep changes scoped so the gauntlet
   does the heavy lifting.

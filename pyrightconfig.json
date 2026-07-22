@@ -1,0 +1,12 @@
+// Point Pylance / pyright / basedpyright at the uv-managed .venv so Django
+// (and django-stubs) resolve. Without it the analyzer falls back to the wrong
+// interpreter and flags imports like "django.apps" as unresolved
+// (reportMissingImports / "could not be resolved from source"). mypy --strict
+// (pyproject.toml) is the type oracle; keep this "basic" so the editor resolves
+// imports and catches obvious mistakes without competing with mypy.
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "typeCheckingMode": "basic",
+  "exclude": ["**/migrations", "**/__pycache__", "**/.venv"]
+}
