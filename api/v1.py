@@ -23,7 +23,12 @@ _PUBLIC_UPDATES = Prefetch("updates", queryset=IssueUpdate.objects.public())
 api_v1 = NinjaAPI(
     title="PleaseFix API",
     version="1.0.0",
-    description="Public API for the PleaseFix civic issue tracker.",
+    description=(
+        "Public API for the PleaseFix civic issue tracker. "
+        "New here? The interactive developer walkthrough at /site/dev.html "
+        "explains the architecture and data model; contributing starts at "
+        "https://github.com/pleasefix-1/pleasefix/blob/main/CONTRIBUTING.md"
+    ),
 )
 
 

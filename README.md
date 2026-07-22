@@ -12,6 +12,27 @@ Inspired by FixMyStreet; built as an independent open platform.
 [docs/DESIGN.md](docs/DESIGN.md). Want to help?
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## New here? Pick your door
+
+- **Understand it in 10 minutes** — the [interactive developer
+  walkthrough](site/dev.html) (`/site/dev.html` on any running
+  instance): architecture, a report's journey through the code, and
+  every data model, with the *why* for each.
+- **Make your first change** — [good first
+  issues](docs/GOOD_FIRST_ISSUES.md) (small, curated, each says how to
+  know you're done) and the [role-based tracks](site/contribute.html)
+  (frontend / backend / AI-integrations).
+- **Your first PR, step by step** — [the eight-step
+  guide](CONTRIBUTING.md#your-first-pull-request-step-by-step) from
+  fork to review.
+- **Or skip our code entirely** — build a client against
+  [the API](CONTRIBUTING.md#build-a-client-instead).
+
+The culture is **[stone soup](CONTRIBUTING.md#the-culture-stone-soup)**:
+informal, no grand roadmap, scratch your own itch, have fun. The
+formality lives in CI, not in people; the code of conduct is one line
+(be kind, assume good faith, no harassment).
+
 ## Status
 
 **Seed.** Runnable skeleton with the full production topology; the domain

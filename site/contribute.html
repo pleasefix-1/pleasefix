@@ -88,6 +88,18 @@ docker compose exec app python manage.py seed_sample_data   # a couple of demo i
     formatting and types for you, so review is about ideas, not style.
   </div>
 
+  <div class="note">
+    <strong>How the project feels: stone soup.</strong> Development is
+    informal — hack, experiment, have fun. There's no grand roadmap;
+    scratch your own itch (these tracks are suggestions, not
+    assignments). The code of conduct is one line: be kind, assume good
+    faith, no harassment. The parable, the culture, and the step-by-step
+    <em>first pull request</em> guide are in
+    <a href="https://github.com/pleasefix-1/pleasefix/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>;
+    if you're lost, start at <a href="good-first-issues.html">good first
+    issues</a>.
+  </div>
+
   <h2>Where things live</h2>
   <dl class="map">
     <dt><code>core/models.py</code></dt><dd>the domain: Issue, IssueUpdate, Flag, routing (Area/Body/Category), Filing, dependencies, tags — see <code>docs/DESIGN.md</code> §10.</dd>
@@ -140,7 +152,7 @@ docker compose exec app python manage.py seed_sample_data   # a couple of demo i
   <p>Ready for a real one? Good frontend starters: consolidating the
     inline CSS into <code>static/css/site.css</code>, or wiring the flag
     button through HTMX. See
-    <a href="https://github.com/pleasefix-1/pleasefix/blob/main/docs/GOOD_FIRST_ISSUES.md">GOOD_FIRST_ISSUES.md</a>.</p>
+    <a href="good-first-issues.html">the good-first-issues list</a>.</p>
 
   <h2 id="backend">⚙️ Backend track</h2>
   <p><strong>You'll work in:</strong> <code>core/models.py</code>,
@@ -163,7 +175,7 @@ docker compose exec app python manage.py seed_sample_data   # a couple of demo i
   </ol>
   <p>Then try: the Reddit comment-permalink fix, the first Celery task
     (EXIF-strip photos), or a PostGIS nearby-issues query — all in
-    <a href="https://github.com/pleasefix-1/pleasefix/blob/main/docs/GOOD_FIRST_ISSUES.md">GOOD_FIRST_ISSUES.md</a>.</p>
+    <a href="good-first-issues.html">the good-first-issues list</a>.</p>
 
   <h2 id="ai">🤖 AI / integrations track</h2>
   <p><strong>The product for you is the API.</strong> PleaseFix is
@@ -185,7 +197,7 @@ docker compose exec app python manage.py seed_sample_data   # a couple of demo i
     suggestion via the Claude API, an outbound status-change webhook, or a
     generated SDK. When you build an LLM feature, keep it behind a setting
     and degrade gracefully when unconfigured — see
-    <a href="https://github.com/pleasefix-1/pleasefix/blob/main/docs/GOOD_FIRST_ISSUES.md">GOOD_FIRST_ISSUES.md</a>.
+    <a href="good-first-issues.html">the good-first-issues list</a>.
     Community clients get listed in the registry — recognition is the
     currency.</p>
 

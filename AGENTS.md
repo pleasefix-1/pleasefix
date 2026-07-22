@@ -32,11 +32,13 @@ uv run mypy .                  # strict + django-stubs; not optional
 uv run lint-imports
 uv run pytest
 uv run python manage.py export_openapi_schema && git diff --exit-code api/openapi.json
+uv run python manage.py export_good_first_issues && git diff --exit-code site/good-first-issues.html
 ```
 
-A change is not done until all seven pass. `api/openapi.json` is a
-committed, reviewed artifact: if you change API surface, regenerate it
-and commit the diff.
+A change is not done until all of these pass. Two generated, committed
+artifacts: `api/openapi.json` (regenerate when API surface changes) and
+`site/good-first-issues.html` (regenerate when
+`docs/GOOD_FIRST_ISSUES.md` changes) — commit the diffs.
 
 ## Map
 

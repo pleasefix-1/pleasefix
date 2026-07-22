@@ -55,6 +55,24 @@ def test_site_page_view_serves_only_site_html() -> None:
     assert Client().get("/site/nope.html").status_code == 404
 
 
+@pytest.mark.django_db
+def test_good_first_issues_page_is_served_and_fresh() -> None:
+    from core.management.commands.export_good_first_issues import PAGE_TEMPLATE, REPO_BLOB
+    from core.management.commands.export_good_first_issues import render_markdown as render
+
+    response = Client().get("/site/good-first-issues.html")
+    assert response.status_code == 200
+    assert b"Good first issues" in response.content
+
+    source = (Path(settings.BASE_DIR) / "docs" / "GOOD_FIRST_ISSUES.md").read_text()
+    expected = PAGE_TEMPLATE.format(body=render(source), blob=REPO_BLOB)
+    committed = (Path(settings.BASE_DIR) / "site" / "good-first-issues.html").read_text()
+    assert committed == expected, (
+        "site/good-first-issues.html is stale — docs/GOOD_FIRST_ISSUES.md changed. "
+        "Run: python manage.py export_good_first_issues and commit the result."
+    )
+
+
 def test_every_referenced_file_exists() -> None:
     html = DEV_HTML.read_text()
     referenced = set(re.findall(r'data-file="([^"]+)"', html))

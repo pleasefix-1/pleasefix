@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Good first issues — PleaseFix</title>
+<meta name="description"
+      content="Small, self-contained starter tasks for new PleaseFix contributors.">
+<!-- GENERATED FILE — do not edit. Source: docs/GOOD_FIRST_ISSUES.md.
+     Regenerate with: python manage.py export_good_first_issues -->
+<style>
+  :root {
+    --fg: #1a1a1a; --bg: #ffffff; --accent: #0b6e4f; --accent-2: #0b4f6e;
+    --muted: #5a5a5a; --card: #f4f6f5; --border: #dde3e0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fg: #eaeaea; --bg: #121212; --accent: #4cc38a; --accent-2: #6fb6d8;
+      --muted: #a0a0a0; --card: #1d211f; --border: #2e3532;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, sans-serif;
+         color: var(--fg); background: var(--bg); line-height: 1.6; }
+  main { max-width: 46rem; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  nav.crumbs { padding-top: 1rem; font-size: .9rem; }
+  h1 { font-size: 1.8rem; margin: 1.5rem 0 .5rem; }
+  h2 { margin-top: 2.2rem; font-size: 1.25rem; border-bottom: 2px solid var(--accent);
+       display: inline-block; padding-bottom: .1rem; }
+  a { color: var(--accent-2); }
+  code { font-family: ui-monospace, SFMono-Regular, monospace; font-size: .9em;
+         background: var(--card); border: 1px solid var(--border);
+         border-radius: .3rem; padding: 0 .25rem; }
+  ul { padding-left: 1.3rem; }
+  li { margin: .7rem 0; }
+  footer { color: var(--muted); font-size: .85rem; margin-top: 3rem;
+           border-top: 1px solid var(--border); padding-top: 1rem; }
+</style>
+</head>
+<body>
+<main>
+  <nav class="crumbs"><a href="index.html">← PleaseFix</a> ·
+    <a href="dev.html">How it works</a> ·
+    <a href="contribute.html">Contribute</a></nav>
+<h1>Good first issues</h1>
+<p>Small, self-contained tasks that are a good way to learn the codebase. Each names the files you'll touch and how to know you're done. Pick one, say so on the tracker so nobody doubles up, and open a PR — the step-by-step guide from fork to review is in <a href="https://github.com/pleasefix-1/pleasefix/blob/main/CONTRIBUTING.md">CONTRIBUTING</a>, the role tracks are at <code>site/contribute.html</code>, and the interactive walkthrough of how everything fits together is at <code>site/dev.html</code>.</p>
+<p>These are suggestions, not assignments — the culture is stone soup (see CONTRIBUTING): informal, no grand roadmap, scratch your own itch. If none of these is your itch, build the thing you actually want.</p>
+<p>Difficulty: 🟢 gentle · 🟡 moderate · 🔴 meaty. Every task must keep <code>make check</code>-equivalent green: <code>ruff</code>, <code>mypy</code>, <code>pytest</code>, <code>lint-imports</code>, and BM+EN strings translated.</p>
+<h2>Frontend / HTMX / templates</h2>
+<ul>
+<li>🟢 <strong>Consolidate inline CSS into a static stylesheet.</strong> Every template has its own <code>&lt;style&gt;</code> block and some rules are copied (<code>.status</code> pills, input styling). Move shared CSS to <code>static/css/site.css</code>, load it once in <code>templates/base.html</code>. *Done when:* pages look identical, no inline <code>&lt;style&gt;</code> remains, CSS is served from <code>/static/</code>.</li>
+<li>🟡 <strong>Make the "report abuse" and update forms use HTMX.</strong> <code>django_htmx</code> and <code>htmx.min.js</code> are already wired but unused. Post the flag/update via <code>hx-post</code> and swap just the affected fragment, keeping the no-JS form fallback. *Files:* <code>templates/issues/detail.html</code>, <code>core/views.py</code> (return a partial when <code>request.htmx</code>). *Done when:* flagging/updating doesn't full-page reload with JS on, and still works with JS off.</li>
+<li>🟢 <strong>Localize the allauth "(optional)" field suffix.</strong> On <code>/accounts/ signup/</code> the email label shows "(optional)" in English under BM. *Files:* <code>locale_vendor/ms/LC_MESSAGES/django.po</code>. *Done when:* signup in BM shows no stray English.</li>
+<li>🟢 <strong>Add an empty-state illustration / better copy to <code>/issues/</code></strong> when there are no reports yet.</li>
+</ul>
+<h2>Backend / Django + GeoDjango</h2>
+<ul>
+<li>🟢 <strong>Reddit comment-permalink import.</strong> <code>core/importers.py</code> extracts the *post* even when the URL points at a specific comment. Read the comment when the permalink has a comment id. *Done when:* a comment URL imports the comment's text; a test covers it.</li>
+<li>🟡 <strong>First Celery task: strip EXIF + downscale uploaded photos.</strong> Celery is configured but has no tasks. Add <code>core/tasks.py</code> with a task that processes <code>IssuePhoto</code> on save (privacy: EXIF GPS leaks location). *Done when:* an uploaded photo is re-encoded without EXIF; task is tested with a synchronous eager runner.</li>
+<li>🟡 <strong><code>/api/v1/status</code> + cached front-page counters.</strong> Add a machine- readable totals endpoint (issues, updates) and cache the homepage count so it isn't a <code>COUNT(*)</code> per request. *Files:* <code>api/v1.py</code>, <code>core/views.py</code>. *Done when:* endpoint returns totals; homepage count is cached.</li>
+<li>🔴 <strong>Nearby-issues query.</strong> Add <code>GET /api/v1/issues/nearby?lat=&amp;lon=&amp;r=</code> using PostGIS distance (<code>core/models.py</code> manager method, ORM only). *Done when:* returns public issues within <code>r</code> metres, newest first, with a test using two points.</li>
+</ul>
+<h2>AI / API / integrations</h2>
+<ul>
+<li>🟡 <strong>Build a sample API client.</strong> A tiny script or notebook that lists issues and submits one against the local API — lives in a new <code>examples/</code> dir, documented in the README. Great for learning the API surface. *Done when:* <code>python examples/list_and_report.py</code> works against <code>docker compose up</code>.</li>
+<li>🔴 <strong>LLM category suggestion (spike, opt-in).</strong> Given an issue title + description, suggest a category via the Claude API. Must be behind a setting/flag, degrade gracefully when unconfigured, and never block submission. See <code>docs/DESIGN.md</code> §1 (categories are data). *Done when:* a management command prints a suggestion for a seeded issue; no hard dependency added to the default path.</li>
+<li>🟡 <strong>Webhook on issue status change.</strong> A minimal outbound webhook (event log → POST) so third-party clients don't poll. *Done when:* configuring a URL delivers a signed JSON payload on status change, with retries via Celery.</li>
+</ul>
+<h2>Housekeeping</h2>
+<ul>
+<li>🟢 <strong>Raise test coverage on the importer's Reddit-403 branch and the OAuth-token path</strong> (<code>core/importers.py</code>) — currently untested.</li>
+<li>🟢 <strong>Rename <code>ImportError_</code></strong> (trailing underscore) to <code>ImportFailed</code> across <code>core/importers.py</code> + callers.</li>
+</ul>
+<p>---</p>
+<p>*Keep this list current:* when you finish one, delete it here in the same PR. When you spot another self-contained task, add it with the same shape (difficulty · what · files · done-when).</p>
+  <footer>
+    <p>Generated from
+    <a href="https://github.com/pleasefix-1/pleasefix/blob/main/docs/GOOD_FIRST_ISSUES.md">docs/GOOD_FIRST_ISSUES.md</a> —
+    edit that file and run <code>python manage.py export_good_first_issues</code>.
+    CI fails when this page is stale.</p>
+  </footer>
+</main>
+</body>
+</html>

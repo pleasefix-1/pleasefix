@@ -2,9 +2,15 @@
 
 Small, self-contained tasks that are a good way to learn the codebase.
 Each names the files you'll touch and how to know you're done. Pick one,
-say so on the tracker so nobody doubles up, and open a PR — see
-[CONTRIBUTING](../CONTRIBUTING.md) and the role tracks at
-`site/contribute.html`.
+say so on the tracker so nobody doubles up, and open a PR — the
+step-by-step guide from fork to review is in
+[CONTRIBUTING](../CONTRIBUTING.md), the role tracks are at
+`site/contribute.html`, and the interactive walkthrough of how
+everything fits together is at `site/dev.html`.
+
+These are suggestions, not assignments — the culture is stone soup
+(see CONTRIBUTING): informal, no grand roadmap, scratch your own itch.
+If none of these is your itch, build the thing you actually want.
 
 Difficulty: 🟢 gentle · 🟡 moderate · 🔴 meaty.
 Every task must keep `make check`-equivalent green: `ruff`, `mypy`,
