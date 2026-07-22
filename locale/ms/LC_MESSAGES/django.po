@@ -5,9 +5,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PleaseFix\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-22 10:50+0800\n"
+"POT-Creation-Date: 2026-07-22 15:42+0800\n"
 "PO-Revision-Date: 2026-07-22 08:45+0800\n"
-"Last-Translator: PleaseFix Maintainers <pleasefix-1@users.noreply.github.com>\n"
+"Last-Translator: PleaseFix Maintainers "
+"<pleasefix-1@users.noreply.github.com>\n"
 "Language-Team: Bahasa Melayu\n"
 "Language: ms\n"
 "MIME-Version: 1.0\n"
@@ -15,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: core/admin.py:30
+#: core/admin.py:70
 msgid "Unhide selected issues (dismiss flags)"
 msgstr "Nyahsembunyi isu terpilih (tolak bendera)"
 
@@ -61,15 +62,21 @@ msgstr "Tambah kemas kini"
 
 #: core/forms.py:80
 msgid "Still broken? Fixed? Add what you know — photos help."
-msgstr "Masih rosak? Sudah dibaiki? Kongsikan apa yang anda tahu — gambar sangat membantu."
+msgstr ""
+"Masih rosak? Sudah dibaiki? Kongsikan apa yang anda tahu — gambar sangat "
+"membantu."
 
 #: core/forms.py:89
 msgid "Reporter secret (optional)"
 msgstr "Rahsia pelapor (tidak wajib)"
 
 #: core/forms.py:93
-msgid "If you're the original reporter, paste the secret you were given — your update gets a verified badge."
-msgstr "Jika anda pelapor asal, tampal rahsia yang diberikan kepada anda — kemas kini anda mendapat lencana disahkan."
+msgid ""
+"If you're the original reporter, paste the secret you were given — your "
+"update gets a verified badge."
+msgstr ""
+"Jika anda pelapor asal, tampal rahsia yang diberikan kepada anda — kemas "
+"kini anda mendapat lencana disahkan."
 
 #: core/forms.py:101
 msgid "Reporter secret"
@@ -108,72 +115,279 @@ msgid "That doesn't look like a Reddit post link."
 msgstr "Itu tidak kelihatan seperti pautan kiriman Reddit."
 
 #: core/importers.py:192
-msgid "Reddit blocks unauthenticated fetches from this server. The site admin can enable Reddit imports by setting REDDIT_CLIENT_ID/REDDIT_CLIENT_SECRET — or copy the post details into the form manually."
-msgstr "Reddit menyekat pengambilan tanpa pengesahan daripada pelayan ini. Pentadbir laman boleh mengaktifkan import Reddit dengan menetapkan REDDIT_CLIENT_ID/REDDIT_CLIENT_SECRET — atau salin butiran kiriman ke dalam borang secara manual."
+msgid ""
+"Reddit blocks unauthenticated fetches from this server. The site admin can "
+"enable Reddit imports by setting REDDIT_CLIENT_ID/REDDIT_CLIENT_SECRET — or "
+"copy the post details into the form manually."
+msgstr ""
+"Reddit menyekat pengambilan tanpa pengesahan daripada pelayan ini. Pentadbir "
+"laman boleh mengaktifkan import Reddit dengan menetapkan REDDIT_CLIENT_ID/"
+"REDDIT_CLIENT_SECRET — atau salin butiran kiriman ke dalam borang secara "
+"manual."
 
 #: core/importers.py:222
 msgid "X/Twitter previews don't include photos — attach one if you have it."
-msgstr "Pratonton X/Twitter tidak menyertakan gambar — lampirkan satu jika ada."
+msgstr ""
+"Pratonton X/Twitter tidak menyertakan gambar — lampirkan satu jika ada."
 
 #: core/importers.py:237
-msgid "That page didn't expose a public preview (it may require login) — please fill in the details yourself."
-msgstr "Halaman itu tidak mendedahkan pratonton awam (mungkin memerlukan log masuk) — sila isi butirannya sendiri."
+msgid ""
+"That page didn't expose a public preview (it may require login) — please "
+"fill in the details yourself."
+msgstr ""
+"Halaman itu tidak mendedahkan pratonton awam (mungkin memerlukan log masuk) "
+"— sila isi butirannya sendiri."
 
 #: core/importers.py:256
 msgid "Could not read that link — try filling the form manually."
 msgstr "Tidak dapat membaca pautan itu — cuba isi borang secara manual."
 
-#: core/models.py:115
-msgid "Open"
-msgstr "Terbuka"
+#: core/models.py:77
+msgid "State"
+msgstr "Negeri"
 
-#: core/models.py:116
-msgid "Fixed"
-msgstr "Selesai"
+#: core/models.py:78
+msgid "District"
+msgstr "Daerah"
 
-#: core/models.py:117
-msgid "Closed"
-msgstr "Ditutup"
+#: core/models.py:79
+msgid "Local council area"
+msgstr "Kawasan pihak berkuasa tempatan"
 
-#: core/models.py:122
-msgid "title"
-msgstr "tajuk"
+#: core/models.py:80
+msgid "Other"
+msgstr "Lain-lain"
 
-#: core/models.py:123
-msgid "description"
-msgstr "keterangan"
-
-#: core/models.py:124
-msgid "source link"
-msgstr "pautan sumber"
-
-#: core/models.py:125
-msgid "location"
-msgstr "lokasi"
-
-#: core/models.py:127
-msgid "status"
-msgstr "status"
-
-#: core/models.py:129
-msgid "reporter name"
-msgstr "nama pelapor"
-
-#: core/models.py:207
-msgid "update"
-msgstr "kemas kini"
-
-#: core/models.py:208
+#: core/models.py:82 core/models.py:105 core/models.py:127 core/models.py:166
+#: core/models.py:204 core/models.py:460
 msgid "name"
 msgstr "nama"
 
-#: core/models.py:211 core/models.py:277
+#: core/models.py:83
+msgid "kind"
+msgstr "jenis"
+
+#: core/models.py:85
+msgid "boundary"
+msgstr "sempadan"
+
+#: core/models.py:86
+msgid "external code"
+msgstr "kod luaran"
+
+#: core/models.py:108
+msgid "dispatch email"
+msgstr "e-mel penghantaran"
+
+#: core/models.py:109
+msgid "homepage"
+msgstr "laman utama"
+
+#: core/models.py:110
+msgid "notes"
+msgstr "nota"
+
+#: core/models.py:159
+msgid "Confirmed"
+msgstr "Disahkan"
+
+#: core/models.py:162
+msgid "Unconfirmed"
+msgstr "Belum disahkan"
+
+#: core/models.py:163
+msgid "Inactive"
+msgstr "Tidak aktif"
+
+#: core/models.py:173
+msgid "dispatch email override"
+msgstr "e-mel penghantaran ganti"
+
+#: core/models.py:287
+msgid "Open"
+msgstr "Terbuka"
+
+#: core/models.py:288
+msgid "Fixed"
+msgstr "Selesai"
+
+#: core/models.py:289
+msgid "Closed"
+msgstr "Ditutup"
+
+#: core/models.py:292
+msgid "No responsible agency"
+msgstr "Tiada agensi bertanggungjawab"
+
+#: core/models.py:293
+msgid "Duplicate"
+msgstr "Pendua"
+
+#: core/models.py:294
+msgid "Referred elsewhere"
+msgstr "Dirujuk ke tempat lain"
+
+#: core/models.py:295
+msgid "Not a valid issue"
+msgstr "Bukan isu yang sah"
+
+#: core/models.py:296
+msgid "Won't be fixed"
+msgstr "Tidak akan dibaiki"
+
+#: core/models.py:302
+msgid "Reporter"
+msgstr "Pelapor"
+
+#: core/models.py:303
+msgid "Community"
+msgstr "Komuniti"
+
+#: core/models.py:304
+msgid "Staff"
+msgstr "Kakitangan"
+
+#: core/models.py:305
+msgid "Agency"
+msgstr "Agensi"
+
+#: core/models.py:308
+msgid "Web form"
+msgstr "Borang web"
+
+#: core/models.py:309
+msgid "URL import"
+msgstr "Import URL"
+
+#: core/models.py:310
+msgid "Browser import"
+msgstr "Import pelayar"
+
+#: core/models.py:311 templates/base.html:94
+msgid "API"
+msgstr "API"
+
+#: core/models.py:312
+msgid "Staff-filed"
+msgstr "Difailkan oleh kakitangan"
+
+#: core/models.py:317
+msgid "title"
+msgstr "tajuk"
+
+#: core/models.py:318
+msgid "description"
+msgstr "keterangan"
+
+#: core/models.py:319
+msgid "source link"
+msgstr "pautan sumber"
+
+#: core/models.py:320
+msgid "location"
+msgstr "lokasi"
+
+#: core/models.py:322
+msgid "status"
+msgstr "status"
+
+#: core/models.py:325
+msgid "closure reason"
+msgstr "sebab penutupan"
+
+#: core/models.py:328
+msgid "fixed by"
+msgstr "dibaiki oleh"
+
+#: core/models.py:342
+msgid "address"
+msgstr "alamat"
+
+#: core/models.py:361
+msgid "reporter name"
+msgstr "nama pelapor"
+
+#: core/models.py:459
+msgid "update"
+msgstr "kemas kini"
+
+#: core/models.py:465
+msgid "new status"
+msgstr "status baharu"
+
+#: core/models.py:469 core/models.py:535
 msgid "photo"
 msgstr "gambar"
 
+#: core/models.py:583
+msgid "Email"
+msgstr "E-mel"
+
+#: core/models.py:584
+msgid "SISPAA"
+msgstr "SISPAA"
+
+#: core/models.py:585
+msgid "Manual / recorded"
+msgstr "Manual / direkodkan"
+
+#: core/models.py:589
+msgid "Recorded"
+msgstr "Direkodkan"
+
+#: core/models.py:592
+msgid "Queued"
+msgstr "Dalam giliran"
+
+#: core/models.py:593
+msgid "Sent"
+msgstr "Dihantar"
+
+#: core/models.py:594
+msgid "Failed"
+msgstr "Gagal"
+
+#: core/models.py:596
+msgid "Acknowledged"
+msgstr "Diterima maklum"
+
+#: core/models.py:597
+msgid "In progress"
+msgstr "Dalam tindakan"
+
+#: core/models.py:598
+msgid "Closed by agency"
+msgstr "Ditutup oleh agensi"
+
+#: core/models.py:605
+msgid "filed with"
+msgstr "difailkan dengan"
+
+#: core/models.py:608
+msgid "their reference number"
+msgstr "nombor rujukan mereka"
+
+#: core/models.py:609
+msgid "their status"
+msgstr "status mereka"
+
+#: core/models.py:612
+msgid "note"
+msgstr "nota"
+
+#: core/models.py:650
+msgid "One issue"
+msgstr "Satu isu"
+
+#: core/models.py:651
+msgid "Reports near a point"
+msgstr "Laporan berhampiran satu titik"
+
 #: core/views.py:20
 msgid "Too many submissions from your connection — please try again later."
-msgstr "Terlalu banyak penghantaran daripada sambungan anda — sila cuba sebentar lagi."
+msgstr ""
+"Terlalu banyak penghantaran daripada sambungan anda — sila cuba sebentar "
+"lagi."
 
 #: core/views.py:126
 #, python-format
@@ -220,7 +434,10 @@ msgid ""
 "    Malaysia. Official complaint channels close tickets; communities fix\n"
 "    problems. PleaseFix keeps every issue open — and public — until it is\n"
 "    actually fixed."
-msgstr "Penjejak isu awam milik komuniti untuk Malaysia. Saluran aduan rasmi menutup tiket; komuniti menyelesaikan masalah. PleaseFix memastikan setiap isu kekal terbuka — dan terbuka kepada umum — sehingga ia benar-benar selesai."
+msgstr ""
+"Penjejak isu awam milik komuniti untuk Malaysia. Saluran aduan rasmi menutup "
+"tiket; komuniti menyelesaikan masalah. PleaseFix memastikan setiap isu kekal "
+"terbuka — dan terbuka kepada umum — sehingga ia benar-benar selesai."
 
 #: templates/about.html:58
 msgid "See the difference: one real kind of issue"
@@ -230,13 +447,16 @@ msgstr "Lihat perbezaannya: satu contoh isu sebenar"
 msgid ""
 "\"I cannot cross the road from the LRT station\n"
 "    because of a barrier.\""
-msgstr "\"Saya tidak dapat melintas jalan dari stesen LRT kerana ada penghadang.\""
+msgstr ""
+"\"Saya tidak dapat melintas jalan dari stesen LRT kerana ada penghadang.\""
 
 #: templates/about.html:64
 msgid ""
 "Watch how the same complaint plays out in an\n"
 "    official system and in PleaseFix."
-msgstr "Lihat bagaimana aduan yang sama berjalan dalam sistem rasmi dan dalam PleaseFix."
+msgstr ""
+"Lihat bagaimana aduan yang sama berjalan dalam sistem rasmi dan dalam "
+"PleaseFix."
 
 #: templates/about.html:70
 msgid "Back"
@@ -281,9 +501,13 @@ msgstr "Hari 15+"
 #: templates/about.html:85
 msgid ""
 "The barrier is still there. Starting over means a new\n"
-"          complaint, to a different agency, from zero — and the history of the\n"
+"          complaint, to a different agency, from zero — and the history of "
+"the\n"
 "          first one is invisible to everyone else."
-msgstr "Penghadang masih di situ. Untuk memulakan semula, aduan baharu perlu difailkan kepada agensi lain, dari kosong — dan sejarah aduan pertama tidak kelihatan kepada sesiapa pun."
+msgstr ""
+"Penghadang masih di situ. Untuk memulakan semula, aduan baharu perlu "
+"difailkan kepada agensi lain, dari kosong — dan sejarah aduan pertama tidak "
+"kelihatan kepada sesiapa pun."
 
 #: templates/about.html:89
 msgid "(nothing further happens)"
@@ -294,7 +518,9 @@ msgid ""
 "Issue opened — public from the first minute, pinned\n"
 "          to the map, with photos. Neighbours subscribe and add their own\n"
 "          evidence."
-msgstr "Isu dibuka — terbuka kepada umum dari minit pertama, ditanda pada peta, dengan gambar. Jiran-jiran melanggan dan menambah bukti mereka sendiri."
+msgstr ""
+"Isu dibuka — terbuka kepada umum dari minit pertama, ditanda pada peta, "
+"dengan gambar. Jiran-jiran melanggan dan menambah bukti mereka sendiri."
 
 #: templates/about.html:98
 msgid "Day 2"
@@ -305,14 +531,20 @@ msgid ""
 "Filings fan out and are tracked on the issue:\n"
 "          SISPAA (rejected), council (filed), rail operator (filed), local\n"
 "          councillor (raised). Each gets its official reference number."
-msgstr "Failan dihantar serentak dan dijejak pada isu: SISPAA (ditolak), PBT (difailkan), pengendali rel (difailkan), ahli majlis tempatan (dibangkitkan). Setiap satu mendapat nombor rujukan rasminya."
+msgstr ""
+"Failan dihantar serentak dan dijejak pada isu: SISPAA (ditolak), PBT "
+"(difailkan), pengendali rel (difailkan), ahli majlis tempatan "
+"(dibangkitkan). Setiap satu mendapat nombor rujukan rasminya."
 
 #: templates/about.html:103
 msgid ""
 "The council closes their ticket — that closes\n"
-"          <strong>their filing</strong>, not the issue. The issue stays open,\n"
+"          <strong>their filing</strong>, not the issue. The issue stays "
+"open,\n"
 "          with the rejection on the record."
-msgstr "PBT menutup tiket mereka — itu menutup <strong>failan mereka</strong>, bukan isu ini. Isu kekal terbuka, dengan penolakan itu tercatat dalam rekod."
+msgstr ""
+"PBT menutup tiket mereka — itu menutup <strong>failan mereka</strong>, bukan "
+"isu ini. Isu kekal terbuka, dengan penolakan itu tercatat dalam rekod."
 
 #: templates/about.html:106
 msgid "Day 30"
@@ -321,9 +553,13 @@ msgstr "Hari 30"
 #: templates/about.html:107
 msgid ""
 "The councillor raises it with the rail operator,\n"
-"          pointing at the public record: dated photos, four filings, one open\n"
+"          pointing at the public record: dated photos, four filings, one "
+"open\n"
 "          issue everyone can see."
-msgstr "Ahli majlis membangkitkannya dengan pengendali rel, sambil menunjukkan rekod awam: gambar bertarikh, empat failan, satu isu terbuka yang boleh dilihat semua."
+msgstr ""
+"Ahli majlis membangkitkannya dengan pengendali rel, sambil menunjukkan rekod "
+"awam: gambar bertarikh, empat failan, satu isu terbuka yang boleh dilihat "
+"semua."
 
 #: templates/about.html:110
 msgid "Day 60"
@@ -333,7 +569,9 @@ msgstr "Hari 60"
 msgid ""
 "The operator commits to a crossing. Status updates\n"
 "          land on the issue; subscribers are notified."
-msgstr "Pengendali komited untuk membina lintasan. Kemas kini status direkodkan pada isu; pelanggan dimaklumkan."
+msgstr ""
+"Pengendali komited untuk membina lintasan. Kemas kini status direkodkan pada "
+"isu; pelanggan dimaklumkan."
 
 #: templates/about.html:113
 msgid "Day 90"
@@ -342,9 +580,13 @@ msgstr "Hari 90"
 #: templates/about.html:114
 msgid ""
 "The crossing is built. The community confirms with\n"
-"          photos — and only then is the issue closed: <strong>fixed, verified by\n"
+"          photos — and only then is the issue closed: <strong>fixed, "
+"verified by\n"
 "          the people who reported it</strong>."
-msgstr "Lintasan siap dibina. Komuniti mengesahkannya dengan gambar — dan barulah isu ditutup: <strong>selesai, disahkan oleh mereka yang melaporkannya</strong>."
+msgstr ""
+"Lintasan siap dibina. Komuniti mengesahkannya dengan gambar — dan barulah "
+"isu ditutup: <strong>selesai, disahkan oleh mereka yang melaporkannya</"
+"strong>."
 
 #: templates/about.html:121
 msgid "Issues can be goals — try it"
@@ -356,7 +598,11 @@ msgid ""
 "    government form can represent \"I want to walk safely from A to B\" —\n"
 "    PleaseFix models it as an issue blocked by other issues, each possibly\n"
 "    a different agency's problem. Resolve the blockers below:"
-msgstr "Rakyat ada matlamat, bukan kod kategori. Tiada borang kerajaan yang boleh mewakili \"Saya mahu berjalan dengan selamat dari A ke B\" — PleaseFix memodelkannya sebagai isu yang disekat oleh isu-isu lain, masing-masing mungkin masalah agensi berbeza. Selesaikan penyekat di bawah:"
+msgstr ""
+"Rakyat ada matlamat, bukan kod kategori. Tiada borang kerajaan yang boleh "
+"mewakili \"Saya mahu berjalan dengan selamat dari A ke B\" — PleaseFix "
+"memodelkannya sebagai isu yang disekat oleh isu-isu lain, masing-masing "
+"mungkin masalah agensi berbeza. Selesaikan penyekat di bawah:"
 
 #: templates/about.html:130
 msgid "\"I can't walk from the LRT to the school\" —"
@@ -398,7 +644,9 @@ msgstr "Penutup longkang pecah di laluan"
 msgid ""
 "(Interactive with JavaScript: checking\n"
 "      all blockers marks the main issue ready to close.)"
-msgstr "(Interaktif dengan JavaScript: menanda semua penyekat menjadikan isu utama sedia untuk ditutup.)"
+msgstr ""
+"(Interaktif dengan JavaScript: menanda semua penyekat menjadikan isu utama "
+"sedia untuk ditutup.)"
 
 #: templates/about.html:149
 msgid "What makes PleaseFix different"
@@ -415,7 +663,12 @@ msgid ""
 "    community record: anyone can see it, add photos and updates, subscribe,\n"
 "    or follow up on an issue an agency already \"closed\". Duplicate\n"
 "    reporters become subscribers instead of noise."
-msgstr "Aduan rasmi ialah perbualan peribadi antara seorang pengadu dan satu agensi. Isu PleaseFix ialah rekod komuniti yang dikongsi: sesiapa sahaja boleh melihatnya, menambah gambar dan kemas kini, melanggan, atau menyusul isu yang telah \"ditutup\" oleh agensi. Pelapor pendua menjadi pelanggan, bukan gangguan."
+msgstr ""
+"Aduan rasmi ialah perbualan peribadi antara seorang pengadu dan satu agensi. "
+"Isu PleaseFix ialah rekod komuniti yang dikongsi: sesiapa sahaja boleh "
+"melihatnya, menambah gambar dan kemas kini, melanggan, atau menyusul isu "
+"yang telah \"ditutup\" oleh agensi. Pelapor pendua menjadi pelanggan, bukan "
+"gangguan."
 
 #: templates/about.html:161
 msgid "Evidence that can't be quietly closed"
@@ -424,11 +677,16 @@ msgstr "Bukti yang tidak boleh ditutup senyap-senyap"
 #: templates/about.html:162
 msgid ""
 "It has happened that a council closed tickets as\n"
-"    \"done\" when the contractor had done nothing. On PleaseFix the trail is\n"
+"    \"done\" when the contractor had done nothing. On PleaseFix the trail "
+"is\n"
 "    public and permanent: dated photos, the date each complaint was lodged\n"
 "    and with whom, every status change. The record outlives the agency's\n"
 "    ticket — that is the point."
-msgstr "Pernah berlaku PBT menutup tiket sebagai \"selesai\" sedangkan kontraktor tidak membuat apa-apa. Di PleaseFix, jejaknya terbuka dan kekal: gambar bertarikh, tarikh setiap aduan difailkan dan kepada siapa, setiap perubahan status. Rekod ini kekal melangkaui tiket agensi — itulah tujuannya."
+msgstr ""
+"Pernah berlaku PBT menutup tiket sebagai \"selesai\" sedangkan kontraktor "
+"tidak membuat apa-apa. Di PleaseFix, jejaknya terbuka dan kekal: gambar "
+"bertarikh, tarikh setiap aduan difailkan dan kepada siapa, setiap perubahan "
+"status. Rekod ini kekal melangkaui tiket agensi — itulah tujuannya."
 
 #: templates/about.html:170
 msgid "Cross-jurisdictional by design"
@@ -442,7 +700,13 @@ msgid ""
 "    station can genuinely involve three bodies. PleaseFix tracks one issue\n"
 "    across every responsible agency at once — each filing with its own\n"
 "    official reference number and status."
-msgstr "Sistem kerajaan ialah silo satu agensi; untuk menyelaraskannya, pernah sampai memerlukan pasukan petugas bersama atau agensi baharu sepenuhnya. Satu lampu jalan rosak di jalan persekutuan berhampiran stesen rel boleh benar-benar melibatkan tiga pihak. PleaseFix menjejak satu isu merentasi setiap agensi yang bertanggungjawab serentak — setiap failan dengan nombor rujukan rasmi dan statusnya sendiri."
+msgstr ""
+"Sistem kerajaan ialah silo satu agensi; untuk menyelaraskannya, pernah "
+"sampai memerlukan pasukan petugas bersama atau agensi baharu sepenuhnya. "
+"Satu lampu jalan rosak di jalan persekutuan berhampiran stesen rel boleh "
+"benar-benar melibatkan tiga pihak. PleaseFix menjejak satu isu merentasi "
+"setiap agensi yang bertanggungjawab serentak — setiap failan dengan nombor "
+"rujukan rasmi dan statusnya sendiri."
 
 #: templates/about.html:180
 msgid "Community status ≠ official status"
@@ -455,7 +719,11 @@ msgid ""
 "    community: it closes when the problem is verifiably fixed, not when a\n"
 "    ticket is. \"Agency says fixed, community says not\" is representable —\n"
 "    and visible."
-msgstr "Setiap failan agensi membawa status agensi itu (difailkan, ditolak, \"selesai\"). Status isu milik komuniti: ia ditutup apabila masalah terbukti selesai, bukan apabila tiket ditutup. \"Agensi kata selesai, komuniti kata belum\" boleh direkodkan — dan dilihat semua."
+msgstr ""
+"Setiap failan agensi membawa status agensi itu (difailkan, ditolak, "
+"\"selesai\"). Status isu milik komuniti: ia ditutup apabila masalah terbukti "
+"selesai, bukan apabila tiket ditutup. \"Agensi kata selesai, komuniti kata "
+"belum\" boleh direkodkan — dan dilihat semua."
 
 #: templates/about.html:189
 msgid "Tags beyond government categories"
@@ -467,7 +735,11 @@ msgid ""
 "    supports — accessibility, CEDAW, public transport, environment — so\n"
 "    advocates can see, for example, every accessibility issue in one\n"
 "    neighbourhood at once."
-msgstr "Isu membawa tag komuniti yang tiada dalam taksonomi mana-mana agensi — kebolehcapaian, CEDAW, pengangkutan awam, alam sekitar — supaya pendukung boleh melihat, contohnya, semua isu kebolehcapaian di satu kejiranan serentak."
+msgstr ""
+"Isu membawa tag komuniti yang tiada dalam taksonomi mana-mana agensi — "
+"kebolehcapaian, CEDAW, pengangkutan awam, alam sekitar — supaya pendukung "
+"boleh melihat, contohnya, semua isu kebolehcapaian di satu kejiranan "
+"serentak."
 
 #: templates/about.html:197
 msgid "It teaches jurisdiction"
@@ -479,7 +751,12 @@ msgid ""
 "    PleaseFix explains it — per issue type and per area — and records the\n"
 "    official reference numbers, so the government-side trail is trackable\n"
 "    from the public one and the next reporter files smarter."
-msgstr "Siapa bertanggungjawab atas apa selalunya menjadi pengetahuan lisan semata-mata. PleaseFix menerangkannya — mengikut jenis isu dan kawasan — dan merekodkan nombor rujukan rasmi, supaya jejak di pihak kerajaan boleh disusuli daripada rekod awam dan pelapor seterusnya memfailkan dengan lebih bijak."
+msgstr ""
+"Siapa bertanggungjawab atas apa selalunya menjadi pengetahuan lisan semata-"
+"mata. PleaseFix menerangkannya — mengikut jenis isu dan kawasan — dan "
+"merekodkan nombor rujukan rasmi, supaya jejak di pihak kerajaan boleh "
+"disusuli daripada rekod awam dan pelapor seterusnya memfailkan dengan lebih "
+"bijak."
 
 #: templates/about.html:204
 msgid "How it works"
@@ -508,12 +785,19 @@ msgstr "Sahkan"
 #: templates/about.html:213
 msgid ""
 "Report with a photo and a pin on the map (no\n"
-"    account needed — a phone number or email is enough). PleaseFix works out\n"
+"    account needed — a phone number or email is enough). PleaseFix works "
+"out\n"
 "    the responsible agencies from the location and category, dispatches to\n"
 "    each of them, and records every filing. Updates flow back — by agency\n"
 "    reply, by staff liaison, or by neighbours adding evidence — and the\n"
 "    community verifies the fix before the issue closes."
-msgstr "Lapor dengan gambar dan pin pada peta (tiada akaun diperlukan — nombor telefon atau e-mel sudah memadai). PleaseFix menentukan agensi yang bertanggungjawab berdasarkan lokasi dan kategori, menghantar kepada setiap satu, dan merekodkan setiap failan. Kemas kini mengalir kembali — melalui balasan agensi, pegawai perhubungan, atau jiran yang menambah bukti — dan komuniti mengesahkan pembaikan sebelum isu ditutup."
+msgstr ""
+"Lapor dengan gambar dan pin pada peta (tiada akaun diperlukan — nombor "
+"telefon atau e-mel sudah memadai). PleaseFix menentukan agensi yang "
+"bertanggungjawab berdasarkan lokasi dan kategori, menghantar kepada setiap "
+"satu, dan merekodkan setiap failan. Kemas kini mengalir kembali — melalui "
+"balasan agensi, pegawai perhubungan, atau jiran yang menambah bukti — dan "
+"komuniti mengesahkan pembaikan sebelum isu ditutup."
 
 #: templates/about.html:221
 msgid "Built to be built on"
@@ -526,7 +810,12 @@ msgid ""
 "  <code>docker compose up</code> for the whole stack. The public API is a\n"
 "  first-class product — build your own reporting app, neighbourhood\n"
 "  dashboard, or advocacy view on the same public data."
-msgstr "PleaseFix ialah sumber terbuka (Apache-2.0) dan sengaja dibina mesra penyumbang: Django + HTMX, penaipan ketat, satu <code>docker compose up</code> untuk keseluruhan sistem. API awam ialah produk kelas pertama — bina aplikasi pelaporan, papan pemuka kejiranan, atau paparan advokasi anda sendiri di atas data awam yang sama."
+msgstr ""
+"PleaseFix ialah sumber terbuka (Apache-2.0) dan sengaja dibina mesra "
+"penyumbang: Django + HTMX, penaipan ketat, satu <code>docker compose up</"
+"code> untuk keseluruhan sistem. API awam ialah produk kelas pertama — bina "
+"aplikasi pelaporan, papan pemuka kejiranan, atau paparan advokasi anda "
+"sendiri di atas data awam yang sama."
 
 #: templates/about.html:228
 msgid "Explore the API"
@@ -539,10 +828,6 @@ msgstr "Kod sumber & penyumbangan"
 #: templates/base.html:92
 msgid "Issues"
 msgstr "Isu"
-
-#: templates/base.html:94
-msgid "API"
-msgstr "API"
 
 #: templates/base.html:96
 msgid "Log out"
@@ -570,7 +855,10 @@ msgid ""
 "    tracker for Malaysia. Report local problems, follow every filing with\n"
 "    every agency, and keep the issue open — together — until it is\n"
 "    actually fixed."
-msgstr "PleaseFix ialah penjejak isu awam milik komuniti untuk Malaysia. Laporkan masalah setempat, ikuti setiap failan dengan setiap agensi, dan pastikan isu kekal terbuka — bersama-sama — sehingga ia benar-benar selesai."
+msgstr ""
+"PleaseFix ialah penjejak isu awam milik komuniti untuk Malaysia. Laporkan "
+"masalah setempat, ikuti setiap failan dengan setiap agensi, dan pastikan isu "
+"kekal terbuka — bersama-sama — sehingga ia benar-benar selesai."
 
 #: templates/home.html:31 templates/issues/list.html:43
 #: templates/issues/report_new.html:3 templates/issues/report_new.html:24
@@ -602,7 +890,9 @@ msgstr "Cara PleaseFix berfungsi"
 msgid ""
 "Why this exists alongside official channels —\n"
 "    an interactive explanation with a worked example."
-msgstr "Mengapa ia wujud di samping saluran rasmi — penerangan interaktif dengan contoh sebenar."
+msgstr ""
+"Mengapa ia wujud di samping saluran rasmi — penerangan interaktif dengan "
+"contoh sebenar."
 
 #: templates/home.html:46
 msgid "For developers"
@@ -612,7 +902,9 @@ msgstr "Untuk pembangun"
 msgid ""
 "Open source, Apache-2.0, with a public API\n"
 "    designed for third-party apps and dashboards."
-msgstr "Sumber terbuka, Apache-2.0, dengan API awam yang direka untuk aplikasi dan papan pemuka pihak ketiga."
+msgstr ""
+"Sumber terbuka, Apache-2.0, dengan API awam yang direka untuk aplikasi dan "
+"papan pemuka pihak ketiga."
 
 #: templates/issues/detail.html:66
 msgid "All issues"
@@ -627,12 +919,21 @@ msgid ""
 "This is shown only once. Use it to post\n"
 "      verified follow-ups as the original reporter, or to claim this\n"
 "      report into an account later."
-msgstr "Ini dipaparkan sekali sahaja. Gunakannya untuk menghantar susulan yang disahkan sebagai pelapor asal, atau untuk menuntut laporan ini ke dalam akaun kemudian."
+msgstr ""
+"Ini dipaparkan sekali sahaja. Gunakannya untuk menghantar susulan yang "
+"disahkan sebagai pelapor asal, atau untuk menuntut laporan ini ke dalam "
+"akaun kemudian."
 
 #: templates/issues/detail.html:79
 #, python-format
-msgid "<a href=\"%(signup_url)s?next=%(issue_url)s\">Create an account</a> or <a href=\"%(login_url)s?next=%(issue_url)s\">log in</a> to keep track of your reports."
-msgstr "<a href=\"%(signup_url)s?next=%(issue_url)s\">Cipta akaun</a> atau <a href=\"%(login_url)s?next=%(issue_url)s\">log masuk</a> untuk menjejaki laporan anda."
+msgid ""
+"<a href=\"%(signup_url)s?next=%(issue_url)s\">Create an account</a> or <a "
+"href=\"%(login_url)s?next=%(issue_url)s\">log in</a> to keep track of your "
+"reports."
+msgstr ""
+"<a href=\"%(signup_url)s?next=%(issue_url)s\">Cipta akaun</a> atau <a "
+"href=\"%(login_url)s?next=%(issue_url)s\">log masuk</a> untuk menjejaki "
+"laporan anda."
 
 #: templates/issues/detail.html:89
 #, python-format
@@ -656,7 +957,9 @@ msgstr "dituntut"
 msgid ""
 "You reported this — your updates\n"
 "    below are automatically verified."
-msgstr "Anda yang melaporkan ini — kemas kini anda di bawah disahkan secara automatik."
+msgstr ""
+"Anda yang melaporkan ini — kemas kini anda di bawah disahkan secara "
+"automatik."
 
 #: templates/issues/detail.html:107
 msgid ""
@@ -694,7 +997,9 @@ msgstr "laporkan penyalahgunaan"
 msgid ""
 "No updates yet. Seen this problem?\n"
 "      Add what you know below."
-msgstr "Belum ada kemas kini. Pernah nampak masalah ini? Kongsikan apa yang anda tahu di bawah."
+msgstr ""
+"Belum ada kemas kini. Pernah nampak masalah ini? Kongsikan apa yang anda "
+"tahu di bawah."
 
 #: templates/issues/detail.html:148 templates/issues/report_new.html:41
 msgid "Leave this field empty"
@@ -738,7 +1043,10 @@ msgid ""
 "    Threads? Paste the link — we'll pull in whatever the post shares\n"
 "    publicly (title, text, photo), and you add the location and\n"
 "    confirm."
-msgstr "Ternampak masalah komuniti di Reddit, X, Facebook, atau Threads? Tampal pautannya — kami akan tarik apa sahaja yang dikongsi kiriman itu secara terbuka (tajuk, teks, gambar), dan anda tambah lokasi serta sahkan."
+msgstr ""
+"Ternampak masalah komuniti di Reddit, X, Facebook, atau Threads? Tampal "
+"pautannya — kami akan tarik apa sahaja yang dikongsi kiriman itu secara "
+"terbuka (tajuk, teks, gambar), dan anda tambah lokasi serta sahkan."
 
 #: templates/issues/report_import.html:27
 msgid "Continue to the prefilled report form →"
@@ -762,7 +1070,11 @@ msgid ""
 "    reading posts, but your own browser can. Drag this button to your\n"
 "    bookmarks bar, then click it while viewing a post — it opens a report\n"
 "    prefilled from that page, no copy-paste:"
-msgstr "Sesetengah laman (seperti Reddit) menyekat pelayan kami daripada membaca kiriman, tetapi pelayar anda sendiri boleh. Seret butang ini ke bar penanda buku anda, kemudian klik semasa melihat kiriman — ia membuka laporan yang telah diisi daripada halaman itu, tanpa salin-tampal:"
+msgstr ""
+"Sesetengah laman (seperti Reddit) menyekat pelayan kami daripada membaca "
+"kiriman, tetapi pelayar anda sendiri boleh. Seret butang ini ke bar penanda "
+"buku anda, kemudian klik semasa melihat kiriman — ia membuka laporan yang "
+"telah diisi daripada halaman itu, tanpa salin-tampal:"
 
 #: templates/issues/report_import.html:45
 msgid "Report to PleaseFix"
@@ -771,15 +1083,21 @@ msgstr "Lapor ke PleaseFix"
 #: templates/issues/report_import.html:48
 msgid ""
 "On your phone, install PleaseFix (your browser's\n"
-"    \"Add to Home screen\") and then use the system Share button on any post\n"
+"    \"Add to Home screen\") and then use the system Share button on any "
+"post\n"
 "    to send it here."
-msgstr "Pada telefon anda, pasang PleaseFix (\"Tambah ke Skrin Utama\" pada pelayar anda) kemudian gunakan butang Kongsi sistem pada mana-mana kiriman untuk menghantarnya ke sini."
+msgstr ""
+"Pada telefon anda, pasang PleaseFix (\"Tambah ke Skrin Utama\" pada pelayar "
+"anda) kemudian gunakan butang Kongsi sistem pada mana-mana kiriman untuk "
+"menghantarnya ke sini."
 
 #: templates/issues/report_new.html:26
 msgid ""
 "No account needed. The report is public from the\n"
 "    moment you submit it."
-msgstr "Tiada akaun diperlukan. Laporan ini terbuka kepada umum sebaik sahaja anda menghantarnya."
+msgstr ""
+"Tiada akaun diperlukan. Laporan ini terbuka kepada umum sebaik sahaja anda "
+"menghantarnya."
 
 #: templates/issues/report_new.html:28
 msgid "Import from a link instead (Reddit, X, Facebook…)"
@@ -791,7 +1109,9 @@ msgid ""
 "Prefilled from\n"
 "      <a href=\"%(url)s\" rel=\"noopener\">%(url)s</a> — review, add the\n"
 "      location, then submit."
-msgstr "Telah diisi daripada <a href=\"%(url)s\" rel=\"noopener\">%(url)s</a> — semak, tambah lokasi, kemudian hantar."
+msgstr ""
+"Telah diisi daripada <a href=\"%(url)s\" rel=\"noopener\">%(url)s</a> — "
+"semak, tambah lokasi, kemudian hantar."
 
 #: templates/issues/report_new.html:49
 msgid "Where is it?"
@@ -805,7 +1125,9 @@ msgstr "Guna lokasi semasa saya"
 msgid ""
 "Tip: in Google Maps, long-press a\n"
 "      spot and copy the two numbers."
-msgstr "Petua: dalam Google Maps, tekan lama pada satu titik dan salin dua nombor itu."
+msgstr ""
+"Petua: dalam Google Maps, tekan lama pada satu titik dan salin dua nombor "
+"itu."
 
 #: templates/issues/report_new.html:67
 msgid "Submit report"
@@ -814,23 +1136,3 @@ msgstr "Hantar laporan"
 #: templates/issues/report_new.html:84
 msgid "Could not get your location"
 msgstr "Tidak dapat memperoleh lokasi anda"
-
-#~ msgid "Create an account"
-#~ msgstr "Cipta akaun"
-
-#~ msgid "or"
-#~ msgstr "atau"
-
-#~ msgid "log in"
-#~ msgstr "log masuk"
-
-#~ msgid "to keep track of your reports."
-#~ msgstr "untuk menjejaki laporan anda."
-
-#~ msgid "coming soon"
-#~ msgstr "akan datang"
-
-#~ msgid ""
-#~ "A photo, a pin on the map, and a phone number\n"
-#~ "    or email — no account needed. The report flow is being built now."
-#~ msgstr "Gambar, pin pada peta, dan nombor telefon atau e-mel — tiada akaun diperlukan. Aliran laporan sedang dibina sekarang."
