@@ -22,6 +22,9 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: postgis://pleasefix:pleasefix@localhost:5432/pleasefix
+      # Dev mode: settings.py refuses to boot DEBUG-off without a real
+      # SECRET_KEY and REDIS_URL (production guards) — CI has neither.
+      DEBUG: "true"
     steps:
       - uses: actions/checkout@v4
       - name: Install GDAL and gettext
