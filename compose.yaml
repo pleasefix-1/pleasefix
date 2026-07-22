@@ -35,7 +35,13 @@ services:
 
   app:
     build: .
-    env_file: .env
+    # Optional so a fresh clone (e.g. the VS Code dev container) starts
+    # without `cp .env.example .env` — dev defaults cover everything.
+    # A real deployment still needs .env: with DEBUG off, settings.py
+    # refuses to boot without SECRET_KEY and REDIS_URL, loudly.
+    env_file:
+      - path: .env
+        required: false
     environment:
       DATABASE_URL: postgis://pleasefix:${POSTGRES_PASSWORD:-pleasefix}@db:5432/pleasefix
       REDIS_URL: redis://redis:6379/0
@@ -53,7 +59,9 @@ services:
 
   worker:
     build: .
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     environment:
       DATABASE_URL: postgis://pleasefix:${POSTGRES_PASSWORD:-pleasefix}@db:5432/pleasefix
       REDIS_URL: redis://redis:6379/0
