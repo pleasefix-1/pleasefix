@@ -17,6 +17,16 @@ def test_about_renders(client: Client) -> None:
     assert b"deptree" in response.content
 
 
+def test_home_in_malay(client: Client) -> None:
+    response = client.get("/", HTTP_ACCEPT_LANGUAGE="ms")
+    assert b"Laporkan. Jejaki. Sehingga selesai." in response.content
+
+
+def test_language_switcher_present(client: Client) -> None:
+    response = client.get("/")
+    assert b'name="language" value="ms"' in response.content
+
+
 def test_healthz(client: Client) -> None:
     response = client.get("/healthz")
     assert response.status_code == 200

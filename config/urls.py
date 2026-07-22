@@ -10,5 +10,6 @@ urlpatterns = [
     path("healthz", views.healthz, name="healthz"),
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
+    path("i18n/", include("django.conf.urls.i18n")),
     path("api/v1/", api_v1.urls),
 ]

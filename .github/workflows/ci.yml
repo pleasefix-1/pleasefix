@@ -24,10 +24,11 @@ jobs:
       DATABASE_URL: postgis://pleasefix:pleasefix@localhost:5432/pleasefix
     steps:
       - uses: actions/checkout@v4
-      - name: Install GDAL
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gdal-bin libgdal-dev
+      - name: Install GDAL and gettext
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gdal-bin libgdal-dev gettext
       - uses: astral-sh/setup-uv@v5
       - run: uv sync
+      - run: uv run python manage.py compilemessages
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy .

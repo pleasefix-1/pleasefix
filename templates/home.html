@@ -1,18 +1,51 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block content %}
-  <h1>{% translate "PleaseFix" %}</h1>
+<style>
+  .hero { padding: 2rem 0 1rem; }
+  .hero h1 { font-size: 2.2rem; margin: 0 0 .4rem; }
+  .hero p { font-size: 1.15rem; color: var(--muted); max-width: 42rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+          gap: 1rem; margin: 1.5rem 0; }
+  .tile { border: 1px solid var(--border); border-radius: .6rem; background: var(--card);
+          padding: 1rem 1.2rem; }
+  .tile h2 { margin: 0 0 .4rem; font-size: 1.05rem; color: var(--accent); }
+  .tile p { margin: 0; color: var(--muted); font-size: .95rem; }
+  .soon { display: inline-block; font-size: .75rem; border: 1px solid var(--border);
+          border-radius: 999px; padding: .05rem .55rem; color: var(--muted);
+          margin-left: .4rem; vertical-align: middle; }
+</style>
+
+<div class="hero">
+  <h1>{% blocktranslate %}Report it. Track it. Until it's fixed.{% endblocktranslate %}</h1>
   <p>
-    {% blocktranslate %}A public, community-owned issue tracker for
-    Malaysia. Report local problems, track every filing with every
-    agency, and keep the issue open until it is actually fixed.{% endblocktranslate %}
+    {% blocktranslate %}PleaseFix is a public, community-owned issue
+    tracker for Malaysia. Report local problems, follow every filing with
+    every agency, and keep the issue open — together — until it is
+    actually fixed.{% endblocktranslate %}
   </p>
-  <p>
-    {% blocktranslate %}This is the seed application — the report flow,
-    map, and issue pages land here next.{% endblocktranslate %}
-  </p>
-  <p>
-    <a href="{% url 'about' %}">{% blocktranslate %}What is PleaseFix, and
-    why does it exist? — an interactive explanation{% endblocktranslate %}</a>
-  </p>
+</div>
+
+<div class="grid">
+  <div class="tile">
+    <h2>{% translate "Report an issue" %}<span class="soon">{% translate "coming soon" %}</span></h2>
+    <p>{% blocktranslate %}A photo, a pin on the map, and a phone number
+    or email — no account needed. The report flow is being built now.{% endblocktranslate %}</p>
+  </div>
+  <div class="tile">
+    <h2>{% translate "Browse issues nearby" %}<span class="soon">{% translate "coming soon" %}</span></h2>
+    <p>{% blocktranslate %}See what's already reported around you,
+    subscribe to updates, and add your own evidence.{% endblocktranslate %}</p>
+  </div>
+  <div class="tile">
+    <h2><a href="{% url 'about' %}">{% translate "How PleaseFix works" %}</a></h2>
+    <p>{% blocktranslate %}Why this exists alongside official channels —
+    an interactive explanation with a worked example.{% endblocktranslate %}</p>
+  </div>
+  <div class="tile">
+    <h2><a href="/api/v1/docs">{% translate "For developers" %}</a></h2>
+    <p>{% blocktranslate %}Open source, Apache-2.0, with a public API
+    designed for third-party apps and dashboards.{% endblocktranslate %}</p>
+  </div>
+</div>
 {% endblock %}
