@@ -15,11 +15,13 @@ services:
     ports:
       - "127.0.0.1:5432:5432"  # for non-Docker local dev (uv run manage.py ...)
     volumes:
-      # A pgdata volume initialized by an older Postgres major won't
-      # boot on a newer one. Dev data is throwaway: recreate it with
+      # Postgres 18+ images keep data in major-version-specific dirs
+      # under /var/lib/postgresql (not .../data) — mounting the old path
+      # is an error. A pgdata volume initialized by an older major won't
+      # boot on a newer one either. Dev data is throwaway: recreate with
       #   docker compose down && docker volume rm pleasefix_pgdata
       # then re-run manage.py seed_sample_data. Production: pg_dump/restore.
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U pleasefix"]
       interval: 5s
