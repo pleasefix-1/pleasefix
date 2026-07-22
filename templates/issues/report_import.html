@@ -32,5 +32,27 @@
     <button type="submit">{% translate "Fetch details" %}</button>
   </form>
   <p><a href="{% url 'report_new' %}">{% translate "Or fill in the report form directly" %}</a></p>
+
+  <h2>{% translate "Import straight from your browser" %}</h2>
+  <p>
+    {% blocktranslate %}Some sites (like Reddit) block our server from
+    reading posts, but your own browser can. Drag this button to your
+    bookmarks bar, then click it while viewing a post — it opens a report
+    prefilled from that page, no copy-paste:{% endblocktranslate %}
+  </p>
+  <p>
+    <a class="bookmarklet" href="{{ bookmarklet }}"
+       onclick="return false">📌 {% translate "Report to PleaseFix" %}</a>
+  </p>
+  <p class="help">
+    {% blocktranslate %}On your phone, install PleaseFix (your browser's
+    "Add to Home screen") and then use the system Share button on any post
+    to send it here.{% endblocktranslate %}
+  </p>
 </div>
+<style>
+  .bookmarklet { display: inline-block; padding: .5rem 1rem; border-radius: .45rem;
+    background: var(--accent); color: var(--bg); text-decoration: none; font-weight: 700;
+    border: 1px solid var(--accent); cursor: grab; }
+</style>
 {% endblock %}

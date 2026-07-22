@@ -19,6 +19,8 @@ urlpatterns = [
     path("updates/<int:update_id>/flag/", views.update_flag, name="update_flag"),
     path("i/<slug:public_id>", views.issue_shortlink, name="issue_shortlink"),
     path("healthz", views.healthz, name="healthz"),
+    path("manifest.webmanifest", views.webmanifest, name="webmanifest"),
+    path("sw.js", views.service_worker, name="service_worker"),
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
     path("i18n/", include("django.conf.urls.i18n")),

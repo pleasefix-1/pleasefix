@@ -1,5 +1,6 @@
 from urllib.parse import quote
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.core.files.base import ContentFile
@@ -60,13 +61,55 @@ def report_new(request: HttpRequest) -> HttpResponse:
             request.session[f"claim_secret_{issue.public_id}"] = claim_token
             return redirect(issue)
     else:
-        form = IssueForm(initial=request.session.pop("import_initial", None))
+        form = IssueForm(initial=_prefill_initial(request))
     return render(request, "issues/report_new.html", {"form": form})
+
+
+# Fields the browser-side import (bookmarklet / PWA share-target) may
+# prefill via GET query params. No server fetch happens here — values are
+# just rendered into the form for the reporter to review; photo_url is
+# only downloaded (SSRF-guarded) on submit.
+_PREFILL_FIELDS = {"title": 200, "description": 5000, "source_url": 500, "photo_url": 500}
+
+
+def _prefill_initial(request: HttpRequest) -> dict[str, str] | None:
+    """Build the report form's initial data from a server-side import
+    (session) or a browser-side import (GET query params, incl. the PWA
+    share-target which maps shared title/text/url onto these names)."""
+    initial: dict[str, str] = dict(request.session.pop("import_initial", None) or {})
+    for field, limit in _PREFILL_FIELDS.items():
+        value = request.GET.get(field, "").strip()
+        if value:
+            initial[field] = value[:limit]
+    return initial or None
+
+
+def _bookmarklet(request: HttpRequest) -> str:
+    """A javascript: bookmarklet that scrapes the page the reporter is on
+    (OpenGraph/title/first image) and opens the prefilled report form.
+    Because it runs in the target page's own context, there's no CORS
+    barrier and no server-side fetch — it works for Reddit/FB/X, on the
+    reporter's own IP and login, where server-side import gets blocked."""
+    report_url = request.build_absolute_uri(reverse("report_new"))
+    js = (
+        "(function(){"
+        "function m(p){var e=document.querySelector("
+        "'meta[property=\"'+p+'\"],meta[name=\"'+p+'\"]');return e?e.content:'';}"
+        "var t=m('og:title')||document.title,"
+        "d=m('og:description')||m('description')||'',"
+        "i=m('og:image')||'',u=location.href;"
+        "window.open('" + report_url + "?title='+encodeURIComponent(t)"
+        "+'&description='+encodeURIComponent(d)"
+        "+'&source_url='+encodeURIComponent(u)"
+        "+'&photo_url='+encodeURIComponent(i));"
+        "})();"
+    )
+    return "javascript:" + js
 
 
 def report_import(request: HttpRequest) -> HttpResponse:
     """Prefill a report from a social-media / web link (see core.importers)."""
-    context: dict[str, object] = {}
+    context: dict[str, object] = {"bookmarklet": _bookmarklet(request)}
     warnings: list[str] = []
     if request.method == "POST":
         form = ImportForm(request.POST)
@@ -227,3 +270,50 @@ def healthz(request: HttpRequest) -> JsonResponse:
     """Liveness/readiness probe: process up + database reachable."""
     connection.ensure_connection()
     return JsonResponse({"status": "ok"})
+
+
+def webmanifest(request: HttpRequest) -> JsonResponse:
+    """PWA manifest. The share_target maps a shared post's title/text/url
+    onto /report/'s prefill params, so on mobile 'Share → PleaseFix' opens
+    the report form already filled (browser-side import; no server fetch)."""
+    static = settings.STATIC_URL
+    manifest = {
+        "name": settings.SITE_NAME,
+        "short_name": settings.SITE_NAME,
+        "start_url": "/",
+        "scope": "/",
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#0b6e4f",
+        "icons": [
+            {"src": f"{static}icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+            {
+                "src": f"{static}icons/icon-512.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any maskable",
+            },
+        ],
+        "share_target": {
+            "action": reverse("report_new"),
+            "method": "GET",
+            "params": {"title": "title", "text": "description", "url": "source_url"},
+        },
+    }
+    return JsonResponse(manifest, content_type="application/manifest+json")
+
+
+# Minimal service worker: required for PWA installability (and thus the
+# Android share-target). Network-passthrough; offline caching is a later
+# enhancement.
+_SERVICE_WORKER = """
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch', () => {});
+"""
+
+
+def service_worker(request: HttpRequest) -> HttpResponse:
+    response = HttpResponse(_SERVICE_WORKER, content_type="application/javascript")
+    response["Service-Worker-Allowed"] = "/"
+    return response

@@ -5,7 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
   {% block meta %}{% endblock %}
+  <link rel="manifest" href="{% url 'webmanifest' %}">
+  <meta name="theme-color" content="#0b6e4f">
   <script src="{% static 'js/htmx.min.js' %}" defer></script>
+  <script>
+    // Register the service worker so PleaseFix is installable and can act
+    // as a share target on mobile (browser-side import). See core/views.py.
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("{% url 'service_worker' %}").catch(function () {});
+      });
+    }
+  </script>
   <style>
     /* Palette: green = action/open/ours, red = closed/failure states.
        Every fg/bg pair here meets WCAG AA on its theme background —
