@@ -75,16 +75,19 @@ artifacts: `api/openapi.json` (regenerate when API surface changes) and
 
 ## For agents specifically
 
-- **Use an LSP, not grep-and-hope.** `basedpyright`/`pyright`, Pylance,
-  and `ruff server` resolve against `.venv` (created by `uv sync`) via
-  the committed `pyrightconfig.json` (`venvPath`/`venv`) — without it the
-  analyzer picks the wrong interpreter and reports Django imports (e.g.
-  `django.apps`) as unresolved. In VS Code, if imports still show red:
-  **Python: Select Interpreter → `.venv/bin/python`**, then **Python:
-  Restart Language Server** (the `.venv` is created in `postCreateCommand`,
-  after first container open). Prefer go-to-definition/references over
-  text search for Django models and views; `mypy` strict is the type
-  oracle.
+- **Use an LSP, not grep-and-hope.** Run analyzers via `uv run` so they
+  hit the right venv automatically: `uv run basedpyright`, `uv run mypy`
+  (`ruff server` for the editor). On the **host** that venv is
+  `.venv`; **inside the dev container** it's `/venv` (the image sets
+  `UV_PROJECT_ENVIRONMENT=/venv` so it survives the `.:/app` bind mount —
+  `/app/.venv` there is just the host venv leaking through, with a
+  dangling `bin/python`). The committed `pyrightconfig.json` pins the
+  host `.venv` for bare-CLI convenience; in the container prefer
+  `uv run`. If Django/ninja imports show red in VS Code, the interpreter
+  is wrong: **Python: Select Interpreter** → `/venv/bin/python` (container)
+  or `.venv/bin/python` (host), then **Python: Restart Language Server**.
+  Prefer go-to-definition/references over text search for Django models
+  and views; `mypy` strict is the type oracle.
 - **Small diffs win.** The review model here is "humans review intent,
   tooling reviews everything else" — keep changes scoped so the gauntlet
   does the heavy lifting.

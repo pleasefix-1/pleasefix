@@ -24,7 +24,13 @@
         "charliermarsh.ruff"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/app/.venv/bin/python",
+        // The dev deps live in /venv, not /app/.venv: the image sets
+        // UV_PROJECT_ENVIRONMENT=/venv (Dockerfile) so the venv survives the
+        // .:/app bind mount, and postCreate's `uv sync` populates it there.
+        // /app/.venv is only the host's venv leaking through the bind mount —
+        // its bin/python is a dangling host-path symlink ("interpreter can't
+        // be resolved"). Point Pylance at the real one.
+        "python.defaultInterpreterPath": "/venv/bin/python",
         "editor.formatOnSave": true,
         "[python]": {
           "editor.defaultFormatter": "charliermarsh.ruff"
