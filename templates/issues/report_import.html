@@ -2,18 +2,6 @@
 {% load i18n %}
 {% block title %}{% translate "Import from a link" %} — {{ SITE_NAME }}{% endblock %}
 {% block content %}
-<style>
-  .import form { max-width: 34rem; }
-  .import input[type=url] { width: 100%; padding: .5rem .6rem; font: inherit;
-    border: 1px solid var(--border); border-radius: .4rem;
-    background: var(--bg); color: var(--fg); }
-  .import .errorlist { color: var(--danger); list-style: none; padding: 0; }
-  .import button { margin-top: .8rem; padding: .55rem 1rem; border-radius: .45rem;
-    font: inherit; font-weight: 700; cursor: pointer;
-    border: 1px solid var(--accent); background: var(--accent); color: var(--bg); }
-  .warn { border: 1px solid var(--border); border-left: 4px solid var(--danger);
-    border-radius: .4rem; padding: .6rem 1rem; margin: 1rem 0; max-width: 34rem; }
-</style>
 <div class="import">
   <h1>{% translate "Import from a link" %}</h1>
   <p>
@@ -50,9 +38,4 @@
     to send it here.{% endblocktranslate %}
   </p>
 </div>
-<style>
-  .bookmarklet { display: inline-block; padding: .5rem 1rem; border-radius: .45rem;
-    background: var(--accent); color: var(--bg); text-decoration: none; font-weight: 700;
-    border: 1px solid var(--accent); cursor: grab; }
-</style>
 {% endblock %}

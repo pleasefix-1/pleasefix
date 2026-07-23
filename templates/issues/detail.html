@@ -18,50 +18,6 @@
   <meta property="place:location:longitude" content="{{ issue.longitude }}">
 {% endblock %}
 {% block content %}
-<style>
-  .issue .status { display: inline-block; border-radius: 999px; padding: .1rem .7rem;
-    font-size: .9rem; font-weight: 600; border: 1px solid var(--border); }
-  .issue .status.open { color: var(--accent); border-color: var(--accent); }
-  .issue .meta { color: var(--muted); margin: .4rem 0 1.2rem; }
-  .issue .photos { display: flex; gap: .8rem; flex-wrap: wrap; margin: 1rem 0; }
-  .issue .photos img { max-width: 18rem; max-height: 18rem; border-radius: .5rem; }
-  .issue .loc { border: 1px solid var(--border); border-radius: .6rem;
-    background: var(--card); padding: .8rem 1.1rem; margin: 1rem 0; font-size: .95rem; }
-  .issue .ref { font-family: ui-monospace, monospace; color: var(--muted); }
-  .share { margin: 1.2rem 0; display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
-  .share a, .share button { display: inline-block; padding: .4rem .8rem; font: inherit;
-    font-size: .9rem; border: 1px solid var(--border); border-radius: 999px;
-    text-decoration: none; background: var(--card); color: var(--fg); cursor: pointer; }
-  .share a:hover, .share button:hover { border-color: var(--accent); }
-  .updates { margin-top: 2rem; }
-  .update { border-left: 3px solid var(--border); padding: .3rem 0 .3rem 1rem;
-    margin: .9rem 0; }
-  .update .who { color: var(--muted); font-size: .85rem; }
-  .update img { max-width: 12rem; max-height: 12rem; border-radius: .4rem; display: block;
-    margin-top: .4rem; }
-  .updates form.add textarea, .updates form.add input[type=text] { width: 100%;
-    max-width: 34rem; padding: .5rem .6rem; font: inherit; border: 1px solid var(--border);
-    border-radius: .4rem; background: var(--bg); color: var(--fg); }
-  .updates form.add label { display: block; font-weight: 600; margin: .8rem 0 .25rem; }
-  .updates form.add button { margin-top: .8rem; padding: .5rem 1rem; font: inherit;
-    font-weight: 700; border: 1px solid var(--accent); border-radius: .45rem;
-    background: var(--accent); color: var(--bg); cursor: pointer; }
-  form.flag { display: inline; }
-  form.flag button { background: none; border: none; color: var(--muted); font-size: .8rem;
-    cursor: pointer; text-decoration: underline; padding: 0; font-family: inherit; }
-  .secretbox { border: 2px solid var(--accent); border-radius: .6rem;
-    padding: 1rem 1.2rem; margin: 1rem 0; background: var(--card); }
-  .secretbox code { font-size: 1.3rem; font-weight: 700; letter-spacing: .08em; }
-  .badge { display: inline-block; border-radius: 999px; padding: 0 .55rem;
-    font-size: .78rem; font-weight: 700; color: var(--bg); background: var(--accent); }
-  .claim { margin: 1rem 0; font-size: .95rem; }
-  .claim input { padding: .35rem .5rem; font: inherit; border: 1px solid var(--border);
-    border-radius: .4rem; background: var(--bg); color: var(--fg); }
-  .claim button { padding: .35rem .8rem; font: inherit; border: 1px solid var(--accent);
-    border-radius: .4rem; background: transparent; color: var(--accent); cursor: pointer; }
-  details.secretfield summary { color: var(--muted); font-size: .9rem; cursor: pointer;
-    margin-top: .8rem; }
-</style>
 <div class="issue">
   <p><a href="{% url 'issue_list' %}">← {% translate "All issues" %}</a></p>
 
