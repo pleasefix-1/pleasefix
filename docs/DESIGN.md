@@ -49,6 +49,29 @@ for Malaysia. Providers behind one interface, addable over time:
    table edited interactively** (admin UI, later a map editor). Imports
    seed and refresh; interactive edits are the corrections layer on top.
 
+### Web map: provider-modular, like geocoding
+
+Same posture as reverse geocoding above: the web map supports multiple
+providers modularly, selected by config. The basemap style/tile source
+is deploy configuration (a `MAP_STYLE_URL` env var — any MapLibre style
+URL), never a code literal.
+
+- **First-party default: MapLibre GL JS (vendored, no CDN) + a free
+  external hosted vector-tile server** (OpenFreeMap; Protomaps hosted is
+  the alternate) — zero keys or billing between `docker compose up` and
+  a working map. Reconfiguring to another provider, or to self-hosted
+  PMTiles, is a config change, not a code change.
+- The **one wrapped map component** from the table above is where the
+  modularity lives: a single `static/js/map.js` touches map plumbing;
+  templates consume it declaratively. Contributors and future providers
+  meet at that seam.
+- **Key requirement: the map override layer (above) must be surfaceable
+  on the map.** The component supports overlay layers (GeoJSON served
+  from our own database — override geometries, jurisdiction boundaries)
+  so internally-maintained corrections are visible, and eventually
+  editable, in map context rather than buried in admin tables. This is
+  the display half of easy jurisdiction editing (§2).
+
 ## 2. Explicit non-features
 
 - **No cobrands / no multitenancy.** One brand, one behavior, one
