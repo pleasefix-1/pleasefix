@@ -19,11 +19,58 @@ document is the reference you come back to.
 | Backend | **Django + GeoDjango**, Python, strict typing (mypy) from day one | Largest average-developer pool; GeoDjango is purpose-built for this domain; admin panel = moderation/ops backend for free; framework conventions police style; types are the first-pass review |
 | Database | **PostgreSQL + PostGIS** (single database) | Spatial queries first-class; Postgres full-text search before reaching for Elasticsearch |
 | Frontend | Server-rendered Django templates + **HTMX** (Alpine.js where needed) | Lowest contributor skill floor; one rendering path; the app is mostly forms + a map |
-| Map | **MapLibre GL JS + PMTiles** (static file, no tile server); Nominatim for geocoding | No API keys or billing; PMTiles is a static file served with range requests; the map is wrapped in one well-documented component so contributors never touch tile plumbing |
+| Map | **MapLibre GL JS + PMTiles** (static file, no tile server); Nominatim for geocoding (multi-provider plan below) | No API keys or billing; PMTiles is a static file served with range requests; the map is wrapped in one well-documented component so contributors never touch tile plumbing |
 | API | **django-ninja**, OpenAPI schema generated from typed code, versioned `/api/v1/` | Schema-first contract; the schema file is a reviewed artifact; CI fails on unintended API surface changes |
 | Background jobs | Celery (+ Redis broker) | Notifications, image processing, dispatch |
 | Object storage | S3 API via django-storages; **VersityGW bundled as the compose default** (§8) | The app speaks only "dumb S3" (put/get/presign/delete); backend swappable |
 | Architecture | **Modular monolith** — no microservices | One `docker compose up` to contribute; boundaries enforced by import-linter in CI |
+
+### Geocoding: multi-provider, with a local override layer
+
+Reverse geocoding (point → address, point → admin areas) goes through a
+**multi-provider abstraction**, not a hardwired service — providers
+augment and cross-check each other, since no single one is authoritative
+for Malaysia. Providers behind one interface, addable over time:
+
+1. **Nominatim** — the public osm.org instance first; self-hosted later
+   if volume or terms of service require it.
+2. **MapIt** — mapit.sinarproject.org, or another/own instance.
+3. **Google Maps Geocoding** — needs an API key, paid; optional and
+   config-gated, so the no-keys default stack stays intact.
+4. **Local override ("map override")** — exceptions maintained in
+   PleaseFix's own database, consulted *first*. When provider data is
+   wrong, we record the correction ourselves instead of waiting on
+   upstream; the table may grow to hold other internally-maintained map
+   data. This is the mechanism behind easy jurisdiction editing (§2):
+   the people who spot bad routing get an editable exception layer, not
+   frozen imports. Two sources feed it: **imported geo files** from
+   external sources (GeoJSON, GeoPackage, GeoParquet, Shapefile — loaded
+   via GeoDjango/GDAL, provenance recorded per import) and a **PostGIS
+   table edited interactively** (admin UI, later a map editor). Imports
+   seed and refresh; interactive edits are the corrections layer on top.
+
+### Web map: provider-modular, like geocoding
+
+Same posture as reverse geocoding above: the web map supports multiple
+providers modularly, selected by config. The basemap style/tile source
+is deploy configuration (a `MAP_STYLE_URL` env var — any MapLibre style
+URL), never a code literal.
+
+- **First-party default: MapLibre GL JS (vendored, no CDN) + a free
+  external hosted vector-tile server** (OpenFreeMap; Protomaps hosted is
+  the alternate) — zero keys or billing between `docker compose up` and
+  a working map. Reconfiguring to another provider, or to self-hosted
+  PMTiles, is a config change, not a code change.
+- The **one wrapped map component** from the table above is where the
+  modularity lives: a single `static/js/map.js` touches map plumbing;
+  templates consume it declaratively. Contributors and future providers
+  meet at that seam.
+- **Key requirement: the map override layer (above) must be surfaceable
+  on the map.** The component supports overlay layers (GeoJSON served
+  from our own database — override geometries, jurisdiction boundaries)
+  so internally-maintained corrections are visible, and eventually
+  editable, in map context rather than buried in admin tables. This is
+  the display half of easy jurisdiction editing (§2).
 
 ## 2. Explicit non-features
 

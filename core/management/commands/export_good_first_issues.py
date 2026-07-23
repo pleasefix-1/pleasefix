@@ -100,7 +100,9 @@ def render_markdown(md: str) -> str:
     """The subset of markdown GOOD_FIRST_ISSUES.md uses, nothing more."""
     out: list[str] = []
     paragraph: list[str] = []
-    items: list[str] = []
+    # Each bullet: intro text, optional nested numbered steps, optional
+    # trailing text after the steps (e.g. the *Done when:* line).
+    items: list[dict[str, Any]] = []
 
     def flush_paragraph() -> None:
         if paragraph:
@@ -110,7 +112,14 @@ def render_markdown(md: str) -> str:
     def flush_list() -> None:
         if items:
             out.append("<ul>")
-            out.extend(f"<li>{_inline(item)}</li>" for item in items)
+            for item in items:
+                li = _inline(item["text"])
+                if item["steps"]:
+                    steps = "".join(f"<li>{_inline(s)}</li>" for s in item["steps"])
+                    li += f"<ol>{steps}</ol>"
+                if item["tail"]:
+                    li += f" {_inline(item['tail'])}"
+                out.append(f"<li>{li}</li>")
             out.append("</ul>")
             items.clear()
 
@@ -123,9 +132,17 @@ def render_markdown(md: str) -> str:
             out.append(f"<h{level}>{_inline(stripped.lstrip('#').strip())}</h{level}>")
         elif stripped.startswith("- "):
             flush_paragraph()
-            items.append(stripped[2:])
+            items.append({"text": stripped[2:], "steps": [], "tail": ""})
+        elif items and line.startswith("  ") and re.match(r"\d+\.\s", stripped):
+            items[-1]["steps"].append(re.sub(r"^\d+\.\s+", "", stripped))
+        elif stripped and line.startswith("    ") and items and items[-1]["steps"]:
+            items[-1]["steps"][-1] += " " + stripped  # step continuation line
         elif stripped and line.startswith("  ") and items:
-            items[-1] += " " + stripped  # bullet continuation line
+            item = items[-1]  # bullet continuation: before or after the steps
+            if item["steps"]:
+                item["tail"] = (item["tail"] + " " + stripped).strip()
+            else:
+                item["text"] += " " + stripped
         elif stripped:
             flush_list()
             paragraph.append(stripped)

@@ -1,6 +1,6 @@
 import hashlib
 import secrets
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from django.conf import settings
 from django.contrib.gis.db import models as gis
@@ -152,6 +152,19 @@ class CategoryQuerySet(models.QuerySet["Category"]):
         )
 
 
+# Explicit manager (not CategoryQuerySet.as_manager()) so the custom methods
+# are visible to pyright/Pylance, which don't run the django-stubs mypy plugin.
+class CategoryManager(models.Manager["Category"]):
+    def get_queryset(self) -> CategoryQuerySet:
+        return CategoryQuerySet(self.model, using=self._db)
+
+    def active(self) -> CategoryQuerySet:
+        return self.get_queryset().active()
+
+    def for_point(self, point: Point) -> CategoryQuerySet:
+        return self.get_queryset().for_point(point)
+
+
 class Category(models.Model):
     """
     A per-body contact/category join — NOT a global taxonomy. Unique on
@@ -191,7 +204,9 @@ class Category(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    objects = CategoryQuerySet.as_manager()
+    # ClassVar annotation (not a bare assignment) so pyright/Pylance override
+    # the base Model's `objects: Manager[Self]` and see the custom methods.
+    objects: ClassVar[CategoryManager] = CategoryManager()
 
     class Meta:
         verbose_name_plural = "categories"
@@ -384,7 +399,7 @@ class Issue(Flaggable):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    objects = IssueManager()
+    objects: ClassVar[IssueManager] = IssueManager()
 
     class Meta:
         ordering = ["-created_at"]
@@ -455,6 +470,16 @@ class IssueUpdateQuerySet(models.QuerySet["IssueUpdate"]):
         return self.filter(is_hidden=False)
 
 
+# Explicit manager (not .as_manager()) so `objects.public()` is visible to
+# pyright/Pylance, which don't run the django-stubs mypy plugin.
+class IssueUpdateManager(models.Manager["IssueUpdate"]):
+    def get_queryset(self) -> IssueUpdateQuerySet:
+        return IssueUpdateQuerySet(self.model, using=self._db)
+
+    def public(self) -> IssueUpdateQuerySet:
+        return self.get_queryset().public()
+
+
 class IssueUpdate(Flaggable):
     """
     A public follow-up on an issue — anyone can add one: more evidence,
@@ -478,7 +503,7 @@ class IssueUpdate(Flaggable):
     ip_hash = models.CharField(max_length=64, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    objects = IssueUpdateQuerySet.as_manager()
+    objects: ClassVar[IssueUpdateManager] = IssueUpdateManager()
 
     class Meta:
         ordering = ["created_at"]
