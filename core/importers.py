@@ -2,10 +2,11 @@
 Import an issue draft from a social-media / web URL.
 
 Best-effort extraction: Reddit via its public JSON, X/Twitter via oEmbed,
-everything else (Facebook, Threads, news sites, blogs) via OpenGraph meta
-tags. Platforms behind login walls yield whatever their public preview
-exposes — the reporter reviews and completes the draft either way
-(location, in particular, almost never travels with a social post).
+Instagram via its public captioned-embed page, everything else (Facebook,
+Threads, news sites, blogs) via OpenGraph meta tags. Platforms behind
+login walls yield whatever their public preview exposes — the reporter
+reviews and completes the draft either way (location, in particular,
+almost never travels with a social post).
 """
 
 import contextlib
@@ -211,6 +212,51 @@ def _import_reddit(url: str) -> ImportCandidate:
     return candidate
 
 
+def _import_instagram(url: str) -> ImportCandidate:
+    """Instagram post pages redirect server IPs to a login wall, but the
+    captioned-embed page (what blogs iframe) is public: it carries the
+    caption, the author handle, and the first photo — no API key needed."""
+    match = re.search(r"instagram\.com/(?:[^/]+/)?(p|reel|tv)/([A-Za-z0-9_-]+)", url)
+    if not match:
+        raise ImportError_(_("That doesn't look like an Instagram post link."))
+    kind, shortcode = match.groups()
+    page = safe_get(f"https://www.instagram.com/{kind}/{shortcode}/embed/captioned/").text
+    candidate = ImportCandidate(source_url=url)
+
+    image_tag = re.search(r'<img[^>]+class="[^"]*EmbeddedMediaImage[^"]*"[^>]*>', page)
+    if image_tag:
+        src = re.search(r'src="([^"]+)"', image_tag.group(0))
+        if src:
+            candidate.photo_url = html.unescape(src.group(1))
+
+    author = re.search(r'class="[^"]*CaptionUsername[^"]*"[^>]*>\s*(?:<[^>]+>\s*)*([^<]+)', page)
+    if author:
+        candidate.author = "@" + author.group(1).strip().lstrip("@")
+
+    caption = re.search(r'<div class="Caption"[^>]*>(.*?)</div>', page, re.S)
+    if caption:
+        lines = [
+            re.sub(r"\s+", " ", _strip_tags(line))
+            for line in re.split(r"(?i)<br[^>]*>", caption.group(1))
+        ]
+        lines = [line for line in lines if line]
+        # The embed repeats the author handle as the caption's first line.
+        if lines and candidate.author and lines[0].lstrip("@") == candidate.author.lstrip("@"):
+            lines = lines[1:]
+        candidate.description = "\n".join(lines)
+        if lines:
+            candidate.title = lines[0][:120]
+
+    if not candidate.title and not candidate.description and not candidate.photo_url:
+        candidate.warnings.append(
+            _(
+                "Instagram didn't expose a public preview for that post (it may be "
+                "private or removed) — please fill in the details yourself."
+            )
+        )
+    return candidate
+
+
 def _import_twitter(url: str) -> ImportCandidate:
     oembed = safe_get(f"https://publish.twitter.com/oembed?url={quote(url)}&omit_script=1").json()
     text = _strip_tags(oembed.get("html", ""))
@@ -249,6 +295,8 @@ def fetch_candidate(url: str) -> ImportCandidate:
             return _import_reddit(url)
         if host in ("twitter.com", "x.com") or host.endswith((".twitter.com", ".x.com")):
             return _import_twitter(url)
+        if host in ("instagram.com", "instagr.am") or host.endswith(".instagram.com"):
+            return _import_instagram(url)
         return _import_opengraph(url)
     except ImportError_:
         raise
