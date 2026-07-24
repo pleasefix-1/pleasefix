@@ -2,31 +2,6 @@
 {% load i18n %}
 {% block title %}{% translate "Report an issue" %} — {{ SITE_NAME }}{% endblock %}
 {% block content %}
-<style>
-  .report form { max-width: 34rem; }
-  .report p.help { color: var(--muted); font-size: .95rem; }
-  .field { margin: 1rem 0; }
-  .field label { display: block; font-weight: 600; margin-bottom: .25rem; }
-  .field input[type=text], .field input[type=number], .field textarea {
-    width: 100%; padding: .5rem .6rem; border: 1px solid var(--border);
-    border-radius: .4rem; background: var(--bg); color: var(--fg); font: inherit; }
-  .field .errorlist { color: var(--danger); list-style: none; padding: 0; margin: .25rem 0 0; }
-  .latlon { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
-  .locbtn, .submit { padding: .55rem 1rem; border-radius: .45rem; font: inherit;
-    cursor: pointer; border: 1px solid var(--accent); }
-  .locbtn { background: transparent; color: var(--accent); margin: .3rem 0 0; }
-  .submit { background: var(--accent); color: var(--bg); font-weight: 700; }
-  #locstatus { font-size: .9rem; color: var(--muted); margin-left: .5rem; }
-  #media-preview { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .5rem; }
-  #media-preview img, #media-preview video { max-width: 8rem; max-height: 8rem;
-    border-radius: .4rem; background: #000; object-fit: cover; }
-  .dropzone { border: 1px dashed var(--border); border-radius: .5rem; padding: .5rem .6rem; }
-  .dropzone.dragover { border-color: var(--accent); background: var(--card); }
-  .linkrow { display: flex; gap: .5rem; margin-top: .4rem; }
-  .linkrow input { flex: 1; }
-  #add-link { background: transparent; color: var(--accent); border: 1px solid var(--border);
-    border-radius: .4rem; padding: .35rem .7rem; font: inherit; cursor: pointer; margin-top: .4rem; }
-</style>
 <div class="report">
   <h1>{% translate "Report an issue" %}</h1>
   <p class="help">

@@ -1,21 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block content %}
-<style>
-  .hero { padding: 2rem 0 1rem; }
-  .hero h1 { font-size: 2.2rem; margin: 0 0 .4rem; }
-  .hero p { font-size: 1.15rem; color: var(--muted); max-width: 42rem; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-          gap: 1rem; margin: 1.5rem 0; }
-  .tile { border: 1px solid var(--border); border-radius: .6rem; background: var(--card);
-          padding: 1rem 1.2rem; }
-  .tile h2 { margin: 0 0 .4rem; font-size: 1.05rem; color: var(--accent); }
-  .tile p { margin: 0; color: var(--muted); font-size: .95rem; }
-  .soon { display: inline-block; font-size: .75rem; border: 1px solid var(--border);
-          border-radius: 999px; padding: .05rem .55rem; color: var(--muted);
-          margin-left: .4rem; vertical-align: middle; }
-</style>
-
 <div class="hero">
   <h1>{% blocktranslate %}Report it. Track it. Until it's fixed.{% endblocktranslate %}</h1>
   <p>

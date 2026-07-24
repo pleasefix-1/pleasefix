@@ -19,12 +19,6 @@ Every task must keep `make check`-equivalent green: `ruff`, `mypy`,
 
 ## Frontend / HTMX / templates
 
-- 🟢 **Consolidate inline CSS into a static stylesheet.** Every template
-  has its own `<style>` block and some rules are copied (`.status`
-  pills, input styling). Move shared CSS to `static/css/site.css`,
-  load it once in `templates/base.html`.
-  *Done when:* pages look identical, no inline `<style>` remains, CSS is
-  served from `/static/`.
 - 🟡 **Make the "report abuse" and update forms use HTMX.** `django_htmx`
   and `htmx.min.js` are already wired but unused. Post the flag/update
   via `hx-post` and swap just the affected fragment, keeping the no-JS
