@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install GDAL and gettext
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gdal-bin libgdal-dev gettext
+        run: make system-deps
       - uses: astral-sh/setup-uv@v5
       - run: uv sync
       - run: uv run python manage.py compilemessages

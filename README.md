@@ -67,14 +67,15 @@ VersityGW S3 storage, Caddy). No cloud accounts, no API keys.
 
 ### Local (non-Docker) development
 
-Requires Python 3.12+, [uv](https://docs.astral.sh/uv/), GDAL/GEOS
-(macOS: `brew install gdal`, then set `GDAL_LIBRARY_PATH`/
-`GEOS_LIBRARY_PATH` in `.env` — see `.env.example`), and a
-Postgres+PostGIS reachable via `DATABASE_URL` (easiest:
-`docker compose up db`).
+Requires Python 3.12+, [uv](https://docs.astral.sh/uv/), GDAL/GEOS and
+gettext (Debian/Ubuntu: `make bootstrap` installs them via apt and sets
+up `.env` + the venv; macOS: `brew install gdal gettext`, then set
+`GDAL_LIBRARY_PATH`/`GEOS_LIBRARY_PATH` in `.env` — see
+`.env.example`), and a Postgres+PostGIS reachable via `DATABASE_URL`
+(easiest: `docker compose up db`).
 
 ```sh
-uv sync
+make bootstrap   # Debian/Ubuntu; elsewhere: uv sync after installing GDAL/gettext
 uv run manage.py migrate
 uv run manage.py runserver
 ```

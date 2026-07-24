@@ -15,6 +15,11 @@ uv sync                     # deps into .venv (Python >= 3.12)
 docker compose up --build   # full stack: app, worker, PostGIS, Redis, S3, Caddy
 ```
 
+On a bare Debian/Ubuntu host or server, `make bootstrap` does all of the
+above except compose (apt installs GDAL + gettext — needed for
+`manage.py`/pytest outside Docker — then `.env`, `uv sync`,
+`compilemessages`); `make system-deps` for just the apt packages.
+
 - Tests and `manage.py` need PostGIS. Easiest: keep the compose `db`
   running and set `DATABASE_URL=postgis://pleasefix:pleasefix@localhost:5432/pleasefix`.
 - macOS: uncomment `GDAL_LIBRARY_PATH`/`GEOS_LIBRARY_PATH` in `.env`
