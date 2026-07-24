@@ -13,15 +13,21 @@ from core.models import (
     Flag,
     Issue,
     IssueLink,
-    IssuePhoto,
+    IssueMedia,
+    IssueReference,
     IssueUpdate,
     Subscription,
     Tag,
 )
 
 
-class IssuePhotoInline(admin.TabularInline[IssuePhoto, Issue]):
-    model = IssuePhoto
+class IssueMediaInline(admin.TabularInline[IssueMedia, Issue]):
+    model = IssueMedia
+    extra = 0
+
+
+class IssueReferenceInline(admin.TabularInline[IssueReference, Issue]):
+    model = IssueReference
     extra = 0
 
 
@@ -64,7 +70,7 @@ class IssueAdmin(GISModelAdmin[Issue]):
     autocomplete_fields = ["category", "duplicate_of", "tags"]
     filter_horizontal = ["areas"]
     readonly_fields = ["public_id", "confirmed_at", "source_channel", "created_at", "updated_at"]
-    inlines = [IssuePhotoInline, IssueUpdateInline, FilingInline]
+    inlines = [IssueMediaInline, IssueReferenceInline, IssueUpdateInline, FilingInline]
     actions = ["unhide"]
 
     @admin.action(description=_("Unhide selected issues (dismiss flags)"))

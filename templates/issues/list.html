@@ -24,8 +24,8 @@
     <a href="{% url 'report_new' %}">{% translate "+ Report an issue" %}</a></h1>
   {% for issue in issues %}
     <div class="issue-card">
-      {% with issue.photos.first as photo %}
-        {% if photo %}<img src="{{ photo.image.url }}" alt="">{% endif %}
+      {% with photo=issue.first_image %}
+        {% if photo %}<img src="{{ photo.file.url }}" alt="">{% endif %}
       {% endwith %}
       <div>
         <h2><a href="{{ issue.get_absolute_url }}">{{ issue.title }}</a></h2>

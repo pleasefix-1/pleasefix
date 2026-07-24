@@ -30,7 +30,7 @@ def report(client: Client, **overrides: Any) -> Any:
         "latitude": "3.0738",
         "longitude": "101.5183",
         "reporter_name": "Aina",
-        "photo": SimpleUploadedFile("light.png", TINY_PNG, content_type="image/png"),
+        "attachments": SimpleUploadedFile("light.png", TINY_PNG, content_type="image/png"),
     }
     data.update(overrides)
     return client.post("/report/", data)
@@ -47,15 +47,15 @@ def test_full_flow_report_then_browse(client: Client) -> None:
     assert issue.latitude == pytest.approx(3.0738)
     assert issue.longitude == pytest.approx(101.5183)
     assert issue.status == Issue.Status.OPEN
-    assert issue.photos.count() == 1
+    assert issue.media.count() == 1
 
     # Detail page shows the report and its photo.
     detail = client.get(response.url)
     assert detail.status_code == 200
     assert b"Broken streetlight" in detail.content
-    photo = issue.photos.first()
+    photo = issue.media.first()
     assert photo is not None
-    assert photo.image.url.encode() in detail.content
+    assert photo.file.url.encode() in detail.content
 
     # Browse list shows it too.
     listing = client.get("/issues/")
@@ -73,7 +73,7 @@ def test_full_flow_report_then_browse(client: Client) -> None:
 
 
 def test_photo_is_optional_but_location_is_not(client: Client) -> None:
-    assert report(client, photo="").status_code == 302
+    assert report(client, attachments="").status_code == 302
     response = report(client, latitude="")
     assert response.status_code == 200  # form redisplayed with errors
     assert Issue.objects.count() == 1

@@ -48,6 +48,16 @@ class UpdateOut(Schema):
     created_at: datetime
 
 
+class MediaOut(Schema):
+    url: str
+    kind: str  # "image" or "video"
+
+
+class LinkOut(Schema):
+    url: str
+    label: str
+
+
 class IssueOut(Schema):
     id: str
     reference_code: str
@@ -60,7 +70,9 @@ class IssueOut(Schema):
     source_url: str
     is_claimed: bool
     created_at: datetime
-    photos: list[str]
+    photos: list[str]  # image URLs only — kept for backward compatibility
+    media: list[MediaOut]  # images and videos, in upload order
+    links: list[LinkOut]  # external reference links (chips on the web UI)
     updates: list[UpdateOut]
 
 
@@ -92,7 +104,9 @@ def _issue_out(issue: Issue) -> IssueOut:
         source_url=issue.source_url,
         is_claimed=issue.is_claimed,
         created_at=issue.created_at,
-        photos=[p.image.url for p in issue.photos.all()],
+        photos=[m.file.url for m in issue.media.all() if m.kind == "image"],
+        media=[MediaOut(url=m.file.url, kind=m.kind) for m in issue.media.all()],
+        links=[LinkOut(url=r.url, label=r.display_label) for r in issue.references.all()],
         updates=[
             UpdateOut(
                 text=u.text,
@@ -114,13 +128,13 @@ def version(request: HttpRequest) -> VersionOut:
 
 @api_v1.get("/issues", response=list[IssueOut], summary="List issues (newest first)")
 def list_issues(request: HttpRequest) -> list[IssueOut]:
-    qs = Issue.objects.public().prefetch_related("photos", _PUBLIC_UPDATES)
+    qs = Issue.objects.public().prefetch_related("media", "references", _PUBLIC_UPDATES)
     return [_issue_out(i) for i in qs[:100]]
 
 
 @api_v1.get("/issues/{issue_id}", response=IssueOut, summary="Get one issue by its public ID")
 def get_issue(request: HttpRequest, issue_id: str) -> IssueOut:
-    qs = Issue.objects.public().prefetch_related("photos", _PUBLIC_UPDATES)
+    qs = Issue.objects.public().prefetch_related("media", "references", _PUBLIC_UPDATES)
     return _issue_out(get_object_or_404(qs, public_id=issue_id))
 
 

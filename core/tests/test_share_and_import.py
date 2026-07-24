@@ -103,7 +103,7 @@ def test_submitting_imported_form_downloads_photo(
     assert response.status_code == 302
     created = Issue.objects.get(title="Imported pothole")
     assert created.source_url.startswith("https://www.reddit.com/")
-    assert created.photos.count() == 1
+    assert created.media.count() == 1
 
 
 INSTAGRAM_EMBED = """<html><body>

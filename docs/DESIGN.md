@@ -259,6 +259,19 @@ are expensive to retrofit are in from the start:
   state changes are public, attributed record entries. Reopening a
   closed issue is a transition by the verified reporter or staff;
   follow-ups themselves are always allowed, on any status.
+- **Evidence is photos and videos.** `IssueMedia` (was `IssuePhoto`)
+  carries a `kind` (image/video); the web form takes several at once,
+  with paste (Ctrl+V) and drag-and-drop, and renders `<img>`/`<video>`
+  accordingly. Extension and per-kind size caps are enforced (10 MB
+  images, 50 MB clips); no transcoding, no new runtime deps. A copy is
+  always stored on our own S3, including media pulled in by the
+  social-media importer — the evidence trail can't depend on the source
+  staying up.
+- **External reference links** (`IssueReference`): arbitrary outward
+  links per issue (the original post, a news article, an agency page),
+  shown as clickable chips. The importer's `source_url` is rendered
+  alongside them ("View on Instagram"). Distinct from `IssueLink`, which
+  is an issue↔issue *dependency*.
 - **Dependencies and tags**: blocks/blocked-by links between issues
   ("can't walk A→B" aggregates its blockers), and free-form community
   tags (a11y, CEDAW…) alongside the routed categories.

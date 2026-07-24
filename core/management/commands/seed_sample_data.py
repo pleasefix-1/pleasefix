@@ -75,7 +75,7 @@ class Command(BaseCommand):
             )
             if sample.photo is not None:
                 with sample.photo.open("rb") as f:
-                    issue.photos.create(image=File(f, name=sample.photo.name))
+                    issue.media.create(file=File(f, name=sample.photo.name), kind="image")
             created += 1
         self.stdout.write(f"seeded {created} issue(s), {Issue.objects.count()} total")
 

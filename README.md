@@ -48,6 +48,19 @@ cp .env.example .env
 docker compose up --build
 ```
 
+Needs **Compose v2** (the `docker compose` subcommand, not the legacy
+standalone `docker-compose` v1 — which is also too old to read the
+`compose.yaml` filename). If `docker compose` reports "unknown command",
+install the plugin for your user (no sudo):
+
+```sh
+mkdir -p ~/.docker/cli-plugins
+curl -fsSL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
+  -o ~/.docker/cli-plugins/docker-compose
+chmod +x ~/.docker/cli-plugins/docker-compose
+docker compose version   # verify
+```
+
 On **Windows**? Follow the from-scratch guide:
 [docs/ONBOARDING-WINDOWS.md](docs/ONBOARDING-WINDOWS.md) (WSL2 + Docker
 Desktop, or a one-click VS Code Dev Container). In development the

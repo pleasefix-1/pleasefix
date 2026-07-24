@@ -74,9 +74,23 @@
             "title": "Latitude",
             "type": "number"
           },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/LinkOut"
+            },
+            "title": "Links",
+            "type": "array"
+          },
           "longitude": {
             "title": "Longitude",
             "type": "number"
+          },
+          "media": {
+            "items": {
+              "$ref": "#/components/schemas/MediaOut"
+            },
+            "title": "Media",
+            "type": "array"
           },
           "photos": {
             "items": {
@@ -126,6 +140,8 @@
           "is_claimed",
           "created_at",
           "photos",
+          "media",
+          "links",
           "updates",
           "claim_secret"
         ],
@@ -155,9 +171,23 @@
             "title": "Latitude",
             "type": "number"
           },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/LinkOut"
+            },
+            "title": "Links",
+            "type": "array"
+          },
           "longitude": {
             "title": "Longitude",
             "type": "number"
+          },
+          "media": {
+            "items": {
+              "$ref": "#/components/schemas/MediaOut"
+            },
+            "title": "Media",
+            "type": "array"
           },
           "photos": {
             "items": {
@@ -207,9 +237,47 @@
           "is_claimed",
           "created_at",
           "photos",
+          "media",
+          "links",
           "updates"
         ],
         "title": "IssueOut",
+        "type": "object"
+      },
+      "LinkOut": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "label"
+        ],
+        "title": "LinkOut",
+        "type": "object"
+      },
+      "MediaOut": {
+        "properties": {
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "kind"
+        ],
+        "title": "MediaOut",
         "type": "object"
       },
       "UpdateOut": {

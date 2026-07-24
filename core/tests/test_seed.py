@@ -21,7 +21,7 @@ def test_seed_is_idempotent_and_attaches_photo(settings: Any) -> None:
     issues = Issue.objects.all()
     assert issues.count() == 2
     longkang = Issue.objects.get(title__startswith="Longkang")
-    assert longkang.photos.count() == 1
+    assert longkang.media.count() == 1
 
 
 def test_seed_refuses_without_debug(settings: Any) -> None:
