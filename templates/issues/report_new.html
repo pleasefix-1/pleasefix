@@ -18,8 +18,21 @@
   .submit { background: var(--accent); color: var(--bg); font-weight: 700; }
   #locstatus { font-size: .9rem; color: var(--muted); margin-left: .5rem; }
   #media-preview { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .5rem; }
+  #media-preview { align-items: flex-start; }
+  #media-preview .thumb { position: relative; }
   #media-preview img, #media-preview video { max-width: 8rem; max-height: 8rem;
-    border-radius: .4rem; background: #000; object-fit: cover; }
+    border-radius: .4rem; background: #000; object-fit: cover; display: block; }
+  #media-preview .rm { position: absolute; top: -.4rem; right: -.4rem; width: 1.3rem;
+    height: 1.3rem; border-radius: 999px; border: none; background: var(--danger, #b00);
+    color: #fff; font: inherit; line-height: 1; cursor: pointer; }
+  .gallery-wrap { margin-top: .6rem; }
+  .gallery-wrap summary { color: var(--accent); cursor: pointer; font-size: .9rem; }
+  .gallery { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .5rem; }
+  .gallery-item { padding: 0; border: 2px solid transparent; border-radius: .4rem;
+    background: none; cursor: pointer; }
+  .gallery-item.picked { border-color: var(--accent); }
+  .gallery-item img, .gallery-item video { width: 5rem; height: 5rem; object-fit: cover;
+    border-radius: .3rem; background: #000; display: block; }
   .dropzone { border: 1px dashed var(--border); border-radius: .5rem; padding: .5rem .6rem; }
   .dropzone.dragover { border-color: var(--accent); background: var(--card); }
   .linkrow { display: flex; gap: .5rem; margin-top: .4rem; }
@@ -72,7 +85,23 @@
         also paste (Ctrl+V) or drag &amp; drop images and short videos.{% endblocktranslate %}</p>
       </div>
       {{ form.attachments.errors }}
+      <div id="media-ids"></div>
       <div id="media-preview"></div>
+      <span id="media-status" class="help"></span>
+      {% if gallery %}
+      <details class="gallery-wrap">
+        <summary>{% translate "Reuse one of your recent uploads" %}</summary>
+        <div class="gallery" id="gallery">
+          {% for m in gallery %}
+            <button type="button" class="gallery-item" data-id="{{ m.id }}"
+                    data-kind="{{ m.kind }}" data-url="{{ m.file.url }}">
+              {% if m.is_video %}<video src="{{ m.file.url }}" muted preload="metadata"></video>
+              {% else %}<img src="{{ m.file.url }}" alt="">{% endif %}
+            </button>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
     </div>
     <div class="field">
       <label>{% translate "Related links (optional)" %}</label>
@@ -109,46 +138,85 @@
       });
     });
   }
-  /* Media: multi-file with preview, plus paste (Ctrl+V) and drag & drop.
-     Pasted/dropped files are merged into the file input via a DataTransfer
-     so a single multipart submit carries everything — no extra request. */
+  /* Media: files upload asynchronously as they're added (change, paste,
+     or drag & drop). Each returns a Media id we carry in a hidden field;
+     the report submit then references ids instead of re-sending bytes.
+     With JS off, the file input still submits normally (server fallback).
+     We clear the file input after queueing so nothing double-submits. */
   var input = document.getElementById("id_attachments");
   var preview = document.getElementById("media-preview");
+  var idsBox = document.getElementById("media-ids");
+  var mstatus = document.getElementById("media-status");
   var dropzone = document.getElementById("dropzone");
-  var store = new DataTransfer();
+  var csrf = (document.querySelector("[name=csrfmiddlewaretoken]") || {}).value;
+  var picked = {};  // media id -> true, to avoid duplicates
 
-  function render() {
-    preview.textContent = "";
-    for (var i = 0; i < store.files.length; i++) {
-      var f = store.files[i];
-      var url = URL.createObjectURL(f);
-      var el = f.type.indexOf("video/") === 0
-        ? document.createElement("video")
-        : document.createElement("img");
-      if (el.tagName === "VIDEO") { el.controls = true; el.muted = true; }
-      el.src = url;
-      preview.appendChild(el);
+  function addPreview(url, kind, id) {
+    var wrap = document.createElement("span");
+    wrap.className = "thumb";
+    var el = kind === "video" ? document.createElement("video") : document.createElement("img");
+    if (el.tagName === "VIDEO") { el.controls = true; el.muted = true; }
+    el.src = url;
+    wrap.appendChild(el);
+    if (id != null) {
+      var rm = document.createElement("button");
+      rm.type = "button"; rm.className = "rm"; rm.textContent = "×";
+      rm.addEventListener("click", function () {
+        wrap.remove();
+        var f = idsBox.querySelector('input[value="' + id + '"]');
+        if (f) { f.remove(); }
+        delete picked[id];
+        var g = document.querySelector('.gallery-item[data-id="' + id + '"]');
+        if (g) { g.classList.remove("picked"); }
+      });
+      wrap.appendChild(rm);
     }
+    preview.appendChild(wrap);
   }
 
-  function addFiles(files) {
-    for (var i = 0; i < files.length; i++) {
-      var f = files[i];
-      if (f.type.indexOf("image/") === 0 || f.type.indexOf("video/") === 0) {
-        store.items.add(f);
+  function attachId(id) {
+    if (picked[id]) { return false; }
+    picked[id] = true;
+    var f = document.createElement("input");
+    f.type = "hidden"; f.name = "media_id"; f.value = id;
+    idsBox.appendChild(f);
+    return true;
+  }
+
+  function uploadOne(file) {
+    if (file.type.indexOf("image/") !== 0 && file.type.indexOf("video/") !== 0) { return; }
+    var data = new FormData();
+    data.append("file", file);
+    data.append("csrfmiddlewaretoken", csrf);
+    mstatus.textContent = "{% translate 'Uploading…' %}";
+    fetch("{% url 'report_media_upload' %}", {
+      method: "POST", body: data, credentials: "same-origin"
+    }).then(function (r) {
+      return r.json().then(function (j) { return { ok: r.ok, body: j }; });
+    }).then(function (res) {
+      if (res.ok && res.body.id) {
+        attachId(res.body.id);
+        addPreview(res.body.url, res.body.kind, res.body.id);
+        mstatus.textContent = "";
+      } else {
+        mstatus.textContent = res.body.error || "{% translate 'Upload failed.' %}";
       }
-    }
-    input.files = store.files;
-    render();
+    }).catch(function () {
+      mstatus.textContent = "{% translate 'Upload failed — check your connection.' %}";
+    });
+  }
+
+  function uploadFiles(files) {
+    for (var i = 0; i < files.length; i++) { uploadOne(files[i]); }
   }
 
   input.addEventListener("change", function () {
-    store = new DataTransfer();
-    addFiles(input.files);
+    uploadFiles(input.files);
+    input.value = "";  // queued async — don't also send via multipart
   });
   document.addEventListener("paste", function (e) {
     if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length) {
-      addFiles(e.clipboardData.files);
+      uploadFiles(e.clipboardData.files);
       e.preventDefault();
     }
   });
@@ -163,8 +231,22 @@
     });
   });
   dropzone.addEventListener("drop", function (e) {
-    if (e.dataTransfer && e.dataTransfer.files) { addFiles(e.dataTransfer.files); }
+    if (e.dataTransfer && e.dataTransfer.files) { uploadFiles(e.dataTransfer.files); }
   });
+
+  /* Reuse gallery: click a recent upload to attach it by id. */
+  var gallery = document.getElementById("gallery");
+  if (gallery) {
+    gallery.addEventListener("click", function (e) {
+      var item = e.target.closest(".gallery-item");
+      if (!item) { return; }
+      var id = item.getAttribute("data-id");
+      if (attachId(id)) {
+        item.classList.add("picked");
+        addPreview(item.getAttribute("data-url"), item.getAttribute("data-kind"), id);
+      }
+    });
+  }
 
   /* Related links: add another empty row on demand. */
   document.getElementById("add-link").addEventListener("click", function () {

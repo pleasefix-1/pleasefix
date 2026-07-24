@@ -1,5 +1,6 @@
 import hashlib
 import secrets
+from datetime import datetime
 from typing import TYPE_CHECKING, ClassVar
 from urllib.parse import urlparse
 
@@ -14,6 +15,7 @@ from django.utils.translation import gettext_lazy as _
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import AbstractBaseUser
+    from django.db.models.fields.files import FieldFile
 
 # Unambiguous lowercase alphabet (no 0/1/i/l/o) for short public IDs.
 PUBLIC_ID_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz"
@@ -453,7 +455,7 @@ class Issue(Flaggable):
         """First image attachment (for the thumbnail / og:image). Iterates
         the prefetched `media` cache so list pages stay one query."""
         for media in self.media.all():
-            if media.kind == IssueMedia.Kind.IMAGE:
+            if media.kind == Media.Kind.IMAGE:
                 return media
         return None
 
@@ -588,9 +590,9 @@ def media_kind_for_name(name: str) -> str | None:
     form validator, the importer, and the create view all route through it."""
     ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
     if ext in MEDIA_IMAGE_EXTENSIONS:
-        return IssueMedia.Kind.IMAGE
+        return Media.Kind.IMAGE
     if ext in MEDIA_VIDEO_EXTENSIONS:
-        return IssueMedia.Kind.VIDEO
+        return Media.Kind.VIDEO
     return None
 
 
@@ -603,30 +605,119 @@ def validate_media_file(value: object) -> None:
         raise ValidationError(_("Only image or video files can be attached."))
 
 
-class IssueMedia(models.Model):
-    """A photo or video attached to an issue — the dated evidence trail
-    official channels don't keep public. `kind` drives rendering (<img>
-    vs <video>); the copy always lives on our own storage, even when the
-    original came from a social-media import (see core.importers)."""
+class MediaQuerySet(models.QuerySet["Media"]):
+    def owned_by(self, *, user: object = None, session_key: str = "") -> "MediaQuerySet":
+        """Media the caller may reuse: their own uploads only. A logged-in
+        user owns what they uploaded; an anonymous visitor owns what their
+        session uploaded. Externally-imported media (no uploader, no
+        session) is owned by nobody here — it never matches, so it stays
+        out of reuse galleries until an admin assigns it."""
+        cond = models.Q()
+        if user is not None and getattr(user, "is_authenticated", False):
+            cond |= models.Q(uploaded_by=user)
+        if session_key:
+            cond |= models.Q(session_key=session_key)
+        if not cond:  # no user and no session → own nothing
+            return self.none()
+        return self.filter(cond)
+
+    def orphans(self, older_than: datetime) -> "MediaQuerySet":
+        """Uploaded but never attached to any issue, older than a cutoff —
+        the async-upload path leaves these when a report is abandoned."""
+        return self.filter(attachments__isnull=True, created_at__lt=older_than)
+
+
+class MediaManager(models.Manager["Media"]):
+    # Explicit (not .as_manager()) so custom methods are visible to
+    # pyright/Pylance, which don't run the django-stubs mypy plugin.
+    def get_queryset(self) -> MediaQuerySet:
+        return MediaQuerySet(self.model, using=self._db)
+
+    def owned_by(self, *, user: object = None, session_key: str = "") -> MediaQuerySet:
+        return self.get_queryset().owned_by(user=user, session_key=session_key)
+
+    def orphans(self, older_than: datetime) -> MediaQuerySet:
+        return self.get_queryset().orphans(older_than)
+
+
+class Media(models.Model):
+    """A photo or video file, decoupled from any one issue so it can back
+    several reports (attached via IssueMedia). `kind` drives rendering
+    (<img> vs <video>); the copy always lives on our own storage, even
+    when pulled in by a social-media import.
+
+    Ownership (docs/media-library-phase2.md, Option A): direct uploads
+    belong to their uploader — a logged-in `uploaded_by`, else the
+    anonymous `session_key` — and only the owner may reuse them. Imported
+    media is `origin=IMPORT` with ownership left dangling for admins."""
 
     class Kind(models.TextChoices):
         IMAGE = "image", _("Image")
         VIDEO = "video", _("Video")
 
-    issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name="media")
+    class Origin(models.TextChoices):
+        UPLOAD = "upload", _("Uploaded")
+        IMPORT = "import", _("Imported")
+
     file = models.FileField(_("file"), upload_to="issues/%Y/%m/", validators=[validate_media_file])
     kind = models.CharField(_("kind"), max_length=5, choices=Kind.choices, default=Kind.IMAGE)
+    origin = models.CharField(
+        _("origin"), max_length=6, choices=Origin.choices, default=Origin.UPLOAD
+    )
+    # Ownership scope for reuse. Both blank/null for imported media.
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="uploaded_media",
+    )
+    session_key = models.CharField(_("session key"), max_length=40, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    objects = MediaManager()
+
     class Meta:
-        ordering = ["created_at"]
+        ordering = ["-created_at"]
 
     def __str__(self) -> str:
-        return f"{self.get_kind_display()} for issue {self.issue_id}"
+        return f"{self.get_kind_display()} ({self.get_origin_display()})"
 
     @property
     def is_video(self) -> bool:
         return self.kind == self.Kind.VIDEO
+
+
+class IssueMedia(models.Model):
+    """Join between an Issue and a Media file: one issue shows many media,
+    one media can back many issues. Proxies file/kind/is_video so existing
+    templates and the API keep reading `issue.media` unchanged."""
+
+    issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name="media")
+    media = models.ForeignKey(Media, on_delete=models.CASCADE, related_name="attachments")
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["order", "created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["issue", "media"], name="unique_issue_media"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.media} on issue {self.issue_id}"
+
+    @property
+    def file(self) -> "FieldFile":
+        return self.media.file
+
+    @property
+    def kind(self) -> str:
+        return self.media.kind
+
+    @property
+    def is_video(self) -> bool:
+        return self.media.is_video
 
 
 # Friendly names for the platforms we import from, so a link with no

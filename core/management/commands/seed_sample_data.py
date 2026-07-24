@@ -14,7 +14,7 @@ from django.contrib.gis.geos import MultiPolygon, Point, Polygon
 from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
 
-from core.models import Area, Body, Category, CategoryGroup, Issue
+from core.models import Area, Body, Category, CategoryGroup, Issue, Media
 
 SAMPLE_PHOTO = Path(__file__).resolve().parents[2] / "fixtures" / "sample" / "longkang-ss2-24.jpg"
 
@@ -75,7 +75,8 @@ class Command(BaseCommand):
             )
             if sample.photo is not None:
                 with sample.photo.open("rb") as f:
-                    issue.media.create(file=File(f, name=sample.photo.name), kind="image")
+                    media = Media.objects.create(file=File(f, name=sample.photo.name), kind="image")
+                issue.media.create(media=media)
             created += 1
         self.stdout.write(f"seeded {created} issue(s), {Issue.objects.count()} total")
 

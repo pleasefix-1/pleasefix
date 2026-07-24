@@ -12,6 +12,7 @@ urlpatterns = [
     path("site/<slug:page>.html", views.site_page, name="site_page"),
     path("report/", views.report_new, name="report_new"),
     path("report/import/", views.report_import, name="report_import"),
+    path("report/media/", views.report_media_upload, name="report_media_upload"),
     path("issues/", views.issue_list, name="issue_list"),
     path("issues/<slug:public_id>/", views.issue_detail, name="issue_detail"),
     path("issues/<slug:public_id>/update/", views.update_new, name="update_new"),

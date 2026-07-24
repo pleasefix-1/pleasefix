@@ -128,13 +128,13 @@ def version(request: HttpRequest) -> VersionOut:
 
 @api_v1.get("/issues", response=list[IssueOut], summary="List issues (newest first)")
 def list_issues(request: HttpRequest) -> list[IssueOut]:
-    qs = Issue.objects.public().prefetch_related("media", "references", _PUBLIC_UPDATES)
+    qs = Issue.objects.public().prefetch_related("media__media", "references", _PUBLIC_UPDATES)
     return [_issue_out(i) for i in qs[:100]]
 
 
 @api_v1.get("/issues/{issue_id}", response=IssueOut, summary="Get one issue by its public ID")
 def get_issue(request: HttpRequest, issue_id: str) -> IssueOut:
-    qs = Issue.objects.public().prefetch_related("media", "references", _PUBLIC_UPDATES)
+    qs = Issue.objects.public().prefetch_related("media__media", "references", _PUBLIC_UPDATES)
     return _issue_out(get_object_or_404(qs, public_id=issue_id))
 
 

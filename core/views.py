@@ -16,13 +16,14 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 
 from core import abuse, importers
-from core.forms import ClaimForm, ImportForm, IssueForm, UpdateForm
+from core.forms import ClaimForm, ImportForm, IssueForm, MediaUploadForm, UpdateForm
 from core.models import (
     Flag,
     Issue,
     IssueMedia,
     IssueReference,
     IssueUpdate,
+    Media,
     media_kind_for_name,
 )
 
@@ -58,23 +59,82 @@ def site_page(request: HttpRequest, page: str) -> HttpResponse:
 MAX_LINKS = 10
 
 
-def _attach_media(issue: Issue, uploads: list[Any], photo_url: str) -> None:
-    """Store the reporter's own attachments (images/videos, already
-    validated by the form). Only when they attached nothing do we fall
-    back to the importer-carried photo URL (SSRF-guarded download)."""
-    created = False
+def _session_key(request: HttpRequest) -> str:
+    """The session key, forcing a session into existence first. Anonymous
+    media ownership hangs off this, so it must be a real key — a null key
+    would make the ownership filter match every anonymous visitor."""
+    if not request.session.session_key:
+        request.session.create()
+    return request.session.session_key or ""
+
+
+def _owner_kwargs(request: HttpRequest) -> dict[str, Any]:
+    """Ownership stamp for a freshly uploaded Media: the logged-in user if
+    any, plus the session key for anonymous reuse scoping."""
+    return {
+        "uploaded_by": request.user if request.user.is_authenticated else None,
+        "session_key": _session_key(request),
+    }
+
+
+def _owned_media(request: HttpRequest) -> Any:
+    """Media the requester is allowed to reuse — their own uploads only."""
+    return Media.objects.owned_by(user=request.user, session_key=request.session.session_key or "")
+
+
+def _parse_ids(values: list[str]) -> list[int]:
+    ids: list[int] = []
+    for value in values:
+        try:
+            ids.append(int(value))
+        except (TypeError, ValueError):
+            continue
+    return ids
+
+
+def _attach_media(
+    request: HttpRequest,
+    issue: Issue,
+    uploads: list[Any],
+    photo_url: str,
+    media_ids: list[int],
+) -> None:
+    """Attach media to a new issue from three converging sources: reused
+    async-uploaded media (ownership-filtered — never trust posted IDs),
+    direct multipart uploads (the no-JS fallback), and finally the
+    importer-carried photo, only if nothing else was attached."""
+    order = 0
+    used: set[int] = set()
+    # 1. Reuse async-uploaded media the requester actually owns.
+    owned = {m.pk: m for m in _owned_media(request).filter(pk__in=media_ids)}
+    for media_id in media_ids:
+        media = owned.get(media_id)
+        if media is None or media.pk in used:
+            continue
+        IssueMedia.objects.create(issue=issue, media=media, order=order)
+        used.add(media.pk)
+        order += 1
+    # 2. Direct multipart uploads (JS disabled → files ride the form).
+    owner = _owner_kwargs(request)
     for upload in uploads:
         kind = media_kind_for_name(getattr(upload, "name", "") or "")
         if kind is None:
             continue
-        IssueMedia.objects.create(issue=issue, file=upload, kind=kind)
-        created = True
-    if not created and photo_url:
+        media = Media.objects.create(file=upload, kind=kind, origin=Media.Origin.UPLOAD, **owner)
+        IssueMedia.objects.create(issue=issue, media=media, order=order)
+        used.add(media.pk)
+        order += 1
+    # 3. Importer-carried photo (SSRF-guarded), only if nothing else came
+    # in. Imported media is dangling-ownership (no uploader/session).
+    if not used and photo_url:
         downloaded = importers.download_photo(photo_url)
         if downloaded is not None:
             name, content = downloaded
-            kind = media_kind_for_name(name) or IssueMedia.Kind.IMAGE
-            IssueMedia.objects.create(issue=issue, file=ContentFile(content, name=name), kind=kind)
+            kind = media_kind_for_name(name) or Media.Kind.IMAGE
+            media = Media.objects.create(
+                file=ContentFile(content, name=name), kind=kind, origin=Media.Origin.IMPORT
+            )
+            IssueMedia.objects.create(issue=issue, media=media, order=order)
 
 
 def _attach_references(issue: Issue, urls: list[str]) -> None:
@@ -99,6 +159,12 @@ def _attach_references(issue: Issue, urls: list[str]) -> None:
     IssueReference.objects.bulk_create(refs)
 
 
+def _report_context(request: HttpRequest, form: IssueForm) -> dict[str, object]:
+    # The reuse gallery: the requester's own recent uploads (empty for a
+    # brand-new anonymous session, which is fine — they upload as they go).
+    return {"form": form, "gallery": list(_owned_media(request)[:12])}
+
+
 def report_new(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = IssueForm(request.POST, request.FILES)
@@ -107,7 +173,7 @@ def report_new(request: HttpRequest) -> HttpResponse:
                 return redirect("issue_list")  # honeypot: pretend success
             if abuse.throttled(request, "report", abuse.throttle_limit("report")):
                 form.add_error(None, THROTTLE_MESSAGE)
-                return render(request, "issues/report_new.html", {"form": form})
+                return render(request, "issues/report_new.html", _report_context(request, form))
             issue, claim_token = Issue.objects.create_report(
                 title=form.cleaned_data["title"],
                 description=form.cleaned_data["description"],
@@ -118,14 +184,41 @@ def report_new(request: HttpRequest) -> HttpResponse:
                 ip_hash=abuse.ip_hash(request),
                 owner=request.user if request.user.is_authenticated else None,
             )
-            _attach_media(issue, form.cleaned_data["attachments"], form.cleaned_data["photo_url"])
+            _attach_media(
+                request,
+                issue,
+                form.cleaned_data["attachments"],
+                form.cleaned_data["photo_url"],
+                _parse_ids(request.POST.getlist("media_id")),
+            )
             _attach_references(issue, request.POST.getlist("link"))
             # Shown once on the issue page; never stored raw.
             request.session[f"claim_secret_{issue.public_id}"] = claim_token
             return redirect(issue)
     else:
         form = IssueForm(initial=_prefill_initial(request))
-    return render(request, "issues/report_new.html", {"form": form})
+    return render(request, "issues/report_new.html", _report_context(request, form))
+
+
+@require_POST
+def report_media_upload(request: HttpRequest) -> JsonResponse:
+    """Async attachment upload while the report form is being filled.
+    Returns the new Media's id/kind/url; the form posts the ids back and
+    the create view attaches only the ones this requester owns."""
+    if abuse.throttled(request, "media_upload", abuse.throttle_limit("media_upload")):
+        return JsonResponse({"error": str(THROTTLE_MESSAGE)}, status=429)
+    form = MediaUploadForm(request.POST, request.FILES)
+    if not form.is_valid():
+        errors = [str(e) for e in form.errors.get("file", [])] or [
+            str(_("That file could not be uploaded."))
+        ]
+        return JsonResponse({"error": " ".join(errors)}, status=400)
+    upload = form.cleaned_data["file"]
+    kind = media_kind_for_name(upload.name) or Media.Kind.IMAGE
+    media = Media.objects.create(
+        file=upload, kind=kind, origin=Media.Origin.UPLOAD, **_owner_kwargs(request)
+    )
+    return JsonResponse({"id": media.pk, "kind": media.kind, "url": media.file.url})
 
 
 # Fields the browser-side import (bookmarklet / PWA share-target) may
@@ -207,7 +300,7 @@ def report_import(request: HttpRequest) -> HttpResponse:
 
 
 def issue_list(request: HttpRequest) -> HttpResponse:
-    issues = Issue.objects.public().prefetch_related("media")[:100]
+    issues = Issue.objects.public().prefetch_related("media__media")[:100]
     return render(request, "issues/list.html", {"issues": issues})
 
 
@@ -232,7 +325,7 @@ def _detail_context(request: HttpRequest, issue: Issue, form: UpdateForm) -> dic
 
 def issue_detail(request: HttpRequest, public_id: str) -> HttpResponse:
     issue = get_object_or_404(
-        Issue.objects.public().prefetch_related("media", "references", PUBLIC_UPDATES),
+        Issue.objects.public().prefetch_related("media__media", "references", PUBLIC_UPDATES),
         public_id=public_id,
     )
     return render(request, "issues/detail.html", _detail_context(request, issue, UpdateForm()))

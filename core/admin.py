@@ -16,14 +16,26 @@ from core.models import (
     IssueMedia,
     IssueReference,
     IssueUpdate,
+    Media,
     Subscription,
     Tag,
 )
 
 
+@admin.register(Media)
+class MediaAdmin(admin.ModelAdmin[Media]):
+    list_display = ["__str__", "kind", "origin", "uploaded_by", "created_at"]
+    list_filter = ["kind", "origin"]
+    search_fields = ["file", "session_key"]
+    readonly_fields = ["created_at", "session_key"]
+    # Admins can claim/assign dangling (imported) media by setting uploaded_by.
+    autocomplete_fields = ["uploaded_by"]
+
+
 class IssueMediaInline(admin.TabularInline[IssueMedia, Issue]):
     model = IssueMedia
     extra = 0
+    autocomplete_fields = ["media"]
 
 
 class IssueReferenceInline(admin.TabularInline[IssueReference, Issue]):

@@ -96,6 +96,7 @@ erDiagram
     Area }o--o{ Issue : "snapshot at intake"
     Tag }o--o{ Issue : "advocacy"
     Issue ||--o{ IssueMedia : "evidence"
+    IssueMedia }o--|| Media : "file"
     Issue ||--o{ IssueReference : "external links"
     Issue ||--o{ IssueUpdate : "conversation"
     Issue ||--o{ Filing : "official filings"
@@ -121,7 +122,8 @@ erDiagram
 | Model | Why it exists |
 |---|---|
 | **Issue** | The community's record, not any agency's ticket. Status is a small closed set in code (open/fixed/closed — invariants run on these) qualified by `closure_reason` and `fixed_source` ("agency says fixed, community says not" is core data). `duplicate_of` is a real FK. `confirmed_at` enables report-first-verify-later. Per-act `anonymous` is display-only (staff still see the name). Intake snapshots `source_channel`, `language`, `address`, covering `areas`. `claim_token_hash`/`owner` implement progressive identity. |
-| **IssueMedia** | Dated photos **and videos** are the evidence trail — the accountability instrument official channels don't keep public. `kind` drives rendering (image → `<img>`, video → `<video>`); the copy always lives on our own storage, even when the original came from a social-media import. |
+| **Media** | A photo or video **file, decoupled from any one issue** (phase 2) so one file can back several reports. Dated photos+videos are the evidence trail official channels don't keep public. `kind` drives rendering; the copy always lives on our own storage, even when pulled in by a social-media import. **Ownership:** direct uploads belong to their uploader (a logged-in user, else the anonymous `session_key`) and only the owner may reuse them; imported media is `origin=import` with ownership left dangling for admins to assign. |
+| **IssueMedia** | Join between `Issue` and `Media`: one issue shows many media, one media can back many issues. Proxies `file`/`kind` so templates and the API keep reading `issue.media` unchanged; `order` sets display order. |
 | **IssueReference** | An external link attached to an issue — the original social-media post, a news article, an agency's public ticket page. Rendered as clickable chips. Distinct from `IssueLink` (issue↔issue dependency): this points *out* of the platform. |
 | **IssueUpdate** | The public conversation. `new_status` records the transition an update caused — staff and verified-reporter state changes become public, attributed audit entries. `by_reporter` is verified via the reporter secret or owning account. |
 | **IssueLink** | Blocks/blocked-by between issues. "I can't walk from A to B" is blocked by "no crossing at Y" and "lights out at Z" — each possibly a different agency. Government systems can't represent this; we can. |

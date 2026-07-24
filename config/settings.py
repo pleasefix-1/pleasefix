@@ -217,6 +217,7 @@ THROTTLE_LIMITS = {
     "import": env.int("THROTTLE_IMPORT", default=10),
     "flag": env.int("THROTTLE_FLAG", default=30),
     "claim": env.int("THROTTLE_CLAIM", default=20),
+    "media_upload": env.int("THROTTLE_MEDIA_UPLOAD", default=40),
 }
 
 # Number of trusted reverse proxies in front of the app (0 = none, read

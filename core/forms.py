@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.utils.translation import gettext_lazy as _
 
-from core.models import IssueMedia, media_kind_for_name
+from core.models import Media, media_kind_for_name
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB — photos
 MAX_VIDEO_BYTES = 50 * 1024 * 1024  # 50 MB — short clips, not films
@@ -40,6 +40,8 @@ class MediaField(forms.FileField):
     def clean(self, data: Any, initial: Any = None) -> list[UploadedFile]:
         uploads = data if isinstance(data, list | tuple) else [data]
         uploads = [f for f in uploads if f not in (None, "")]
+        if self.required and not uploads:
+            raise ValidationError(self.error_messages["required"], code="required")
         if len(uploads) > MAX_MEDIA_FILES:
             raise ValidationError(_("Too many files (max %(n)d).") % {"n": MAX_MEDIA_FILES})
         cleaned: list[UploadedFile] = []
@@ -48,11 +50,22 @@ class MediaField(forms.FileField):
             kind = media_kind_for_name(getattr(single, "name", "") or "")
             if kind is None:
                 raise ValidationError(_("Only image or video files can be attached."))
-            cap = MAX_VIDEO_BYTES if kind == IssueMedia.Kind.VIDEO else MAX_UPLOAD_BYTES
+            cap = MAX_VIDEO_BYTES if kind == Media.Kind.VIDEO else MAX_UPLOAD_BYTES
             if single.size is not None and single.size > cap:
                 raise ValidationError(_("%(name)s is too large.") % {"name": single.name})
             cleaned.append(single)
         return cleaned
+
+
+class MediaUploadForm(forms.Form):
+    """One file for the async upload endpoint — reuses MediaField's
+    validation (extension + per-kind size cap) rather than forking it."""
+
+    file = MediaField(required=True, widget=forms.ClearableFileInput)
+
+    def clean_file(self) -> UploadedFile:
+        files: list[UploadedFile] = self.cleaned_data.get("file") or []
+        return files[0]
 
 
 class HoneypotMixin(forms.Form):
