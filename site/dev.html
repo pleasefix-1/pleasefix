@@ -420,7 +420,7 @@ const MODELS = {
     why:"A photo or video file, decoupled from any one issue so it can back several reports (phase 2). Dated photos+videos are the evidence trail official channels don't keep public. kind drives rendering (image → <img>, video → <video>); the copy always lives on our own storage, even when pulled in by a social-media import. Ownership: direct uploads belong to their uploader (a logged-in user, else the anonymous session) and only the owner may reuse them; imported media is origin=import with ownership left dangling for admins to assign.",
     fields:[["file","image or video, stored via S3 (dev: local disk)"],
             ["kind","image / video"],["origin","upload / import"],
-            ["uploaded_by, session_key","reuse ownership; both blank for imports"]],
+            ["uploaded_by, owner_token","reuse ownership (token survives login); both blank for imports"]],
     rels:["IssueMedia"]},
   IssueMedia: {group:"The report",
     why:"Join between Issue and Media: one issue shows many media, one media can back many issues. Proxies file/kind so templates and the API keep reading issue.media unchanged.",

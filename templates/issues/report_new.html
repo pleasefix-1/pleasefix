@@ -85,16 +85,26 @@
         also paste (Ctrl+V) or drag &amp; drop images and short videos.{% endblocktranslate %}</p>
       </div>
       {{ form.attachments.errors }}
-      <div id="media-ids"></div>
-      <div id="media-preview"></div>
+      <div id="media-ids">
+        {% for m in picked %}<input type="hidden" name="media_id" value="{{ m.id }}">{% endfor %}
+      </div>
+      <div id="media-preview">
+        {% for m in picked %}
+          <span class="thumb" data-id="{{ m.id }}">
+            {% if m.is_video %}<video src="{{ m.file.url }}" muted controls></video>
+            {% else %}<img src="{{ m.file.url }}" alt="">{% endif %}
+            <button type="button" class="rm" aria-label="{% translate 'Remove' %}">×</button>
+          </span>
+        {% endfor %}
+      </div>
       <span id="media-status" class="help"></span>
       {% if gallery %}
       <details class="gallery-wrap">
         <summary>{% translate "Reuse one of your recent uploads" %}</summary>
         <div class="gallery" id="gallery">
           {% for m in gallery %}
-            <button type="button" class="gallery-item" data-id="{{ m.id }}"
-                    data-kind="{{ m.kind }}" data-url="{{ m.file.url }}">
+            <button type="button" class="gallery-item{% if m.id in picked_ids %} picked{% endif %}"
+                    data-id="{{ m.id }}" data-kind="{{ m.kind }}" data-url="{{ m.file.url }}">
               {% if m.is_video %}<video src="{{ m.file.url }}" muted preload="metadata"></video>
               {% else %}<img src="{{ m.file.url }}" alt="">{% endif %}
             </button>
@@ -148,31 +158,48 @@
   var idsBox = document.getElementById("media-ids");
   var mstatus = document.getElementById("media-status");
   var dropzone = document.getElementById("dropzone");
+  var form = input.form;
+  var submitBtn = form.querySelector("button[type=submit]");
   var csrf = (document.querySelector("[name=csrfmiddlewaretoken]") || {}).value;
   var picked = {};  // media id -> true, to avoid duplicates
+  var inFlight = 0; // uploads still running; block submit until they finish
+
+  function setBusy() {
+    submitBtn.disabled = inFlight > 0;
+    if (inFlight > 0) {
+      mstatus.textContent = "{% translate 'Uploading…' %}";
+    } else if (mstatus.textContent === "{% translate 'Uploading…' %}") {
+      mstatus.textContent = "";
+    }
+  }
 
   function addPreview(url, kind, id) {
     var wrap = document.createElement("span");
     wrap.className = "thumb";
+    wrap.setAttribute("data-id", id);
     var el = kind === "video" ? document.createElement("video") : document.createElement("img");
     if (el.tagName === "VIDEO") { el.controls = true; el.muted = true; }
     el.src = url;
     wrap.appendChild(el);
-    if (id != null) {
-      var rm = document.createElement("button");
-      rm.type = "button"; rm.className = "rm"; rm.textContent = "×";
-      rm.addEventListener("click", function () {
-        wrap.remove();
-        var f = idsBox.querySelector('input[value="' + id + '"]');
-        if (f) { f.remove(); }
-        delete picked[id];
-        var g = document.querySelector('.gallery-item[data-id="' + id + '"]');
-        if (g) { g.classList.remove("picked"); }
-      });
-      wrap.appendChild(rm);
-    }
+    var rm = document.createElement("button");
+    rm.type = "button"; rm.className = "rm"; rm.textContent = "×";
+    wrap.appendChild(rm);
     preview.appendChild(wrap);
   }
+
+  /* Delegated remove — works for both JS-added and server-rendered (re-
+     hydrated after a validation error) previews. */
+  preview.addEventListener("click", function (e) {
+    if (!e.target.classList.contains("rm")) { return; }
+    var wrap = e.target.closest(".thumb");
+    var id = wrap.getAttribute("data-id");
+    wrap.remove();
+    var f = idsBox.querySelector('input[value="' + id + '"]');
+    if (f) { f.remove(); }
+    delete picked[id];
+    var g = document.querySelector('.gallery-item[data-id="' + id + '"]');
+    if (g) { g.classList.remove("picked"); }
+  });
 
   function attachId(id) {
     if (picked[id]) { return false; }
@@ -188,7 +215,7 @@
     var data = new FormData();
     data.append("file", file);
     data.append("csrfmiddlewaretoken", csrf);
-    mstatus.textContent = "{% translate 'Uploading…' %}";
+    inFlight += 1; setBusy();
     fetch("{% url 'report_media_upload' %}", {
       method: "POST", body: data, credentials: "same-origin"
     }).then(function (r) {
@@ -197,18 +224,24 @@
       if (res.ok && res.body.id) {
         attachId(res.body.id);
         addPreview(res.body.url, res.body.kind, res.body.id);
-        mstatus.textContent = "";
       } else {
         mstatus.textContent = res.body.error || "{% translate 'Upload failed.' %}";
       }
     }).catch(function () {
       mstatus.textContent = "{% translate 'Upload failed — check your connection.' %}";
+    }).then(function () {
+      inFlight -= 1; setBusy();
     });
   }
 
   function uploadFiles(files) {
     for (var i = 0; i < files.length; i++) { uploadOne(files[i]); }
   }
+
+  /* Seed the dedup map from server-rendered (re-hydrated) media ids. */
+  idsBox.querySelectorAll("input[name=media_id]").forEach(function (i) {
+    picked[i.value] = true;
+  });
 
   input.addEventListener("change", function () {
     uploadFiles(input.files);

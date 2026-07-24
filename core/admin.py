@@ -26,8 +26,8 @@ from core.models import (
 class MediaAdmin(admin.ModelAdmin[Media]):
     list_display = ["__str__", "kind", "origin", "uploaded_by", "created_at"]
     list_filter = ["kind", "origin"]
-    search_fields = ["file", "session_key"]
-    readonly_fields = ["created_at", "session_key"]
+    search_fields = ["file", "owner_token"]
+    readonly_fields = ["created_at", "owner_token"]
     # Admins can claim/assign dangling (imported) media by setting uploaded_by.
     autocomplete_fields = ["uploaded_by"]
 

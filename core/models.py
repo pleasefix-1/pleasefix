@@ -606,18 +606,20 @@ def validate_media_file(value: object) -> None:
 
 
 class MediaQuerySet(models.QuerySet["Media"]):
-    def owned_by(self, *, user: object = None, session_key: str = "") -> "MediaQuerySet":
+    def owned_by(self, *, user: object = None, owner_token: str = "") -> "MediaQuerySet":
         """Media the caller may reuse: their own uploads only. A logged-in
         user owns what they uploaded; an anonymous visitor owns what their
-        session uploaded. Externally-imported media (no uploader, no
-        session) is owned by nobody here — it never matches, so it stays
-        out of reuse galleries until an admin assigns it."""
+        session-stored `owner_token` uploaded (a token, not the session
+        key, so ownership survives the key rotation Django does at login).
+        Externally-imported media (no uploader, no token) is owned by
+        nobody here — it never matches, so it stays out of reuse galleries
+        until an admin assigns it."""
         cond = models.Q()
         if user is not None and getattr(user, "is_authenticated", False):
             cond |= models.Q(uploaded_by=user)
-        if session_key:
-            cond |= models.Q(session_key=session_key)
-        if not cond:  # no user and no session → own nothing
+        if owner_token:
+            cond |= models.Q(owner_token=owner_token)
+        if not cond:  # no user and no token → own nothing
             return self.none()
         return self.filter(cond)
 
@@ -633,8 +635,8 @@ class MediaManager(models.Manager["Media"]):
     def get_queryset(self) -> MediaQuerySet:
         return MediaQuerySet(self.model, using=self._db)
 
-    def owned_by(self, *, user: object = None, session_key: str = "") -> MediaQuerySet:
-        return self.get_queryset().owned_by(user=user, session_key=session_key)
+    def owned_by(self, *, user: object = None, owner_token: str = "") -> MediaQuerySet:
+        return self.get_queryset().owned_by(user=user, owner_token=owner_token)
 
     def orphans(self, older_than: datetime) -> MediaQuerySet:
         return self.get_queryset().orphans(older_than)
@@ -648,7 +650,8 @@ class Media(models.Model):
 
     Ownership (docs/media-library-phase2.md, Option A): direct uploads
     belong to their uploader — a logged-in `uploaded_by`, else the
-    anonymous `session_key` — and only the owner may reuse them. Imported
+    anonymous `owner_token` (kept in session data, so it survives login's
+    session-key rotation) — and only the owner may reuse them. Imported
     media is `origin=IMPORT` with ownership left dangling for admins."""
 
     class Kind(models.TextChoices):
@@ -672,7 +675,7 @@ class Media(models.Model):
         blank=True,
         related_name="uploaded_media",
     )
-    session_key = models.CharField(_("session key"), max_length=40, blank=True, editable=False)
+    owner_token = models.CharField(_("owner token"), max_length=64, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = MediaManager()

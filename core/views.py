@@ -1,3 +1,4 @@
+import secrets
 from typing import Any
 from urllib.parse import quote
 
@@ -16,7 +17,14 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 
 from core import abuse, importers
-from core.forms import ClaimForm, ImportForm, IssueForm, MediaUploadForm, UpdateForm
+from core.forms import (
+    MAX_MEDIA_FILES,
+    ClaimForm,
+    ImportForm,
+    IssueForm,
+    MediaUploadForm,
+    UpdateForm,
+)
 from core.models import (
     Flag,
     Issue,
@@ -59,27 +67,34 @@ def site_page(request: HttpRequest, page: str) -> HttpResponse:
 MAX_LINKS = 10
 
 
-def _session_key(request: HttpRequest) -> str:
-    """The session key, forcing a session into existence first. Anonymous
-    media ownership hangs off this, so it must be a real key — a null key
-    would make the ownership filter match every anonymous visitor."""
-    if not request.session.session_key:
-        request.session.create()
-    return request.session.session_key or ""
+def _owner_token(request: HttpRequest) -> str:
+    """A stable per-visitor token stored in session data — NOT the session
+    key. Django rotates the session key on login (cycle_key) but keeps
+    session data, so a token kept here lets an anonymous upload stay owned
+    by the same person after they log in mid-report. Created on first use."""
+    token = request.session.get("media_owner")
+    if not token:
+        token = secrets.token_hex(16)
+        request.session["media_owner"] = token
+    return str(token)
 
 
 def _owner_kwargs(request: HttpRequest) -> dict[str, Any]:
     """Ownership stamp for a freshly uploaded Media: the logged-in user if
-    any, plus the session key for anonymous reuse scoping."""
+    any, plus the anonymous owner token for reuse scoping."""
     return {
         "uploaded_by": request.user if request.user.is_authenticated else None,
-        "session_key": _session_key(request),
+        "owner_token": _owner_token(request),
     }
 
 
 def _owned_media(request: HttpRequest) -> Any:
-    """Media the requester is allowed to reuse — their own uploads only."""
-    return Media.objects.owned_by(user=request.user, session_key=request.session.session_key or "")
+    """Media the requester is allowed to reuse — their own uploads only.
+    Reads the existing owner token without minting one (a visitor who has
+    uploaded nothing owns nothing)."""
+    return Media.objects.owned_by(
+        user=request.user, owner_token=request.session.get("media_owner") or ""
+    )
 
 
 def _parse_ids(values: list[str]) -> list[int]:
@@ -105,9 +120,12 @@ def _attach_media(
     importer-carried photo, only if nothing else was attached."""
     order = 0
     used: set[int] = set()
-    # 1. Reuse async-uploaded media the requester actually owns.
+    # 1. Reuse async-uploaded media the requester actually owns. Capped at
+    # MAX_MEDIA_FILES total (the reuse path bypasses the form's own cap).
     owned = {m.pk: m for m in _owned_media(request).filter(pk__in=media_ids)}
     for media_id in media_ids:
+        if len(used) >= MAX_MEDIA_FILES:
+            break
         media = owned.get(media_id)
         if media is None or media.pk in used:
             continue
@@ -117,6 +135,8 @@ def _attach_media(
     # 2. Direct multipart uploads (JS disabled → files ride the form).
     owner = _owner_kwargs(request)
     for upload in uploads:
+        if len(used) >= MAX_MEDIA_FILES:
+            break
         kind = media_kind_for_name(getattr(upload, "name", "") or "")
         if kind is None:
             continue
@@ -160,9 +180,19 @@ def _attach_references(issue: Issue, urls: list[str]) -> None:
 
 
 def _report_context(request: HttpRequest, form: IssueForm) -> dict[str, object]:
-    # The reuse gallery: the requester's own recent uploads (empty for a
-    # brand-new anonymous session, which is fine — they upload as they go).
-    return {"form": form, "gallery": list(_owned_media(request)[:12])}
+    # gallery: the requester's own recent uploads (empty for a brand-new
+    # anonymous session, which is fine — they upload as they go).
+    # picked: media already attached this submit, re-hydrated so a
+    # validation-error re-render doesn't silently drop the attachments.
+    owned = _owned_media(request)
+    posted = _parse_ids(request.POST.getlist("media_id")) if request.method == "POST" else []
+    picked = list(owned.filter(pk__in=posted)) if posted else []
+    return {
+        "form": form,
+        "gallery": list(owned[:12]),
+        "picked": picked,
+        "picked_ids": {m.pk for m in picked},
+    }
 
 
 def report_new(request: HttpRequest) -> HttpResponse:

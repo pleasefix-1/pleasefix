@@ -143,7 +143,7 @@ def test_async_upload_creates_owned_media(client: Client) -> None:
     media = Media.objects.get(pk=body["id"])
     assert body["kind"] == "image"
     assert media.origin == Media.Origin.UPLOAD
-    assert media.session_key  # a real key is stamped (not null → not everyone)
+    assert media.owner_token  # a stable token is stamped
 
 
 def test_async_upload_rejects_non_media(client: Client) -> None:
@@ -168,7 +168,9 @@ def test_uploaded_media_can_be_reused_in_a_report(client: Client) -> None:
 def test_cannot_attach_media_owned_by_another_session(client: Client) -> None:
     # Media owned by a *different* session — the IDOR guard must refuse it.
     other = Media.objects.create(
-        file=ContentFile(TINY_PNG, name="o.png"), kind="image", session_key="someone-else"
+        file=ContentFile(TINY_PNG, name="o.png"),
+        kind="image",
+        owner_token="someone-else",  # noqa: S106
     )
     data = _base(attachments="")
     data["media_id"] = str(other.pk)
@@ -188,7 +190,7 @@ def test_imported_media_has_dangling_ownership(
     assert response.status_code == 302
     media = Issue.objects.get().media.get().media
     assert media.origin == Media.Origin.IMPORT
-    assert media.uploaded_by_id is None and media.session_key == ""
+    assert media.uploaded_by_id is None and media.owner_token == ""
 
 
 def test_cleanup_orphan_media_removes_only_old_unattached(client: Client) -> None:
@@ -206,3 +208,104 @@ def test_cleanup_orphan_media_removes_only_old_unattached(client: Client) -> Non
     assert not Media.objects.filter(pk=orphan.pk).exists()  # old + unattached → gone
     assert Media.objects.filter(pk=fresh_orphan.pk).exists()  # too recent → kept
     assert Media.objects.filter(pk=attached["id"]).exists()  # attached → kept
+
+
+# --- audit follow-up coverage --------------------------------------------
+
+
+def test_size_caps_are_per_kind(client: Client) -> None:
+    big = b"\x00" * (11 * 1024 * 1024)  # 11 MB: over the 10 MB image cap
+    rejected = client.post(
+        "/report/media/", {"file": SimpleUploadedFile("big.png", big, content_type="image/png")}
+    )
+    assert rejected.status_code == 400  # image cap enforced
+    accepted = client.post(
+        "/report/media/", {"file": SimpleUploadedFile("clip.mp4", big, content_type="video/mp4")}
+    )
+    assert accepted.status_code == 200  # 11 MB is fine for video (50 MB cap)
+
+
+def test_duplicate_media_id_attaches_once(client: Client) -> None:
+    body = _upload(client)
+    data = _base(attachments="")
+    data["media_id"] = [str(body["id"]), str(body["id"])]  # same id twice
+    response = client.post("/report/", data)
+    assert response.status_code == 302
+    assert Issue.objects.get().media.count() == 1  # deduped, no IntegrityError
+
+
+def test_combined_sources_order_and_skip_importer(
+    client: Client, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(importers, "download_photo", lambda url: ("imported.png", TINY_PNG))
+    reused = _upload(client, name="reused.png")
+    data = _base()
+    data["attachments"] = SimpleUploadedFile("direct.png", TINY_PNG, content_type="image/png")
+    data["media_id"] = str(reused["id"])
+    data["photo_url"] = "https://example.com/x.jpg"  # must be skipped (other media present)
+    response = client.post("/report/", data)
+    assert response.status_code == 302
+    issue = Issue.objects.get()
+    assert issue.media.count() == 2  # reused + direct; importer photo skipped
+    assert list(issue.media.values_list("order", flat=True)) == [0, 1]
+    first = issue.media.first()
+    assert first is not None
+    assert first.media_id == reused["id"]  # reused attached first
+
+
+def test_gallery_on_get_shows_only_owners_media(client: Client) -> None:
+    body = _upload(client)
+    mine = client.get("/report/")
+    assert body["url"].encode() in mine.content  # owner sees it in the reuse gallery
+    stranger = Client()
+    assert body["url"].encode() not in stranger.get("/report/").content  # nobody else does
+
+
+def test_logged_in_user_owns_and_reuses_their_uploads(
+    client: Client, django_user_model: Any
+) -> None:
+    user = django_user_model.objects.create_user(username="rina", password="pw")  # noqa: S106
+    client.force_login(user)
+    body = _upload(client)
+    assert Media.objects.get(pk=body["id"]).uploaded_by_id == user.pk
+    data = _base(attachments="")
+    data["media_id"] = str(body["id"])
+    assert client.post("/report/", data).status_code == 302
+    assert Issue.objects.get().media.count() == 1
+
+
+def test_anonymous_upload_stays_owned_after_login(client: Client, django_user_model: Any) -> None:
+    # The C-fix: ownership rides an owner_token in session data, which
+    # survives login's session-key rotation — so a mid-report login does
+    # not orphan an anonymous upload.
+    body = _upload(client)  # anonymous
+    user = django_user_model.objects.create_user(username="aziz", password="pw")  # noqa: S106
+    client.force_login(user)  # cycles the session key, keeps session data
+    data = _base(attachments="")
+    data["media_id"] = str(body["id"])
+    assert client.post("/report/", data).status_code == 302
+    assert Issue.objects.get().media.count() == 1  # still attachable
+
+
+def test_reference_links_capped_and_deduped(client: Client) -> None:
+    links = [f"https://example.com/a{i}" for i in range(12)] + ["https://example.com/a0"]
+    response = client.post("/report/", _base(attachments="", link=links))
+    assert response.status_code == 302
+    urls = list(Issue.objects.get().references.values_list("url", flat=True))
+    assert len(urls) == 10  # MAX_LINKS
+    assert len(set(urls)) == 10  # deduped
+
+
+def test_api_exposes_media_and_links(client: Client) -> None:
+    data = _base()
+    data["attachments"] = [
+        SimpleUploadedFile("a.png", TINY_PNG, content_type="image/png"),
+        SimpleUploadedFile("clip.mp4", b"\x00ftyp", content_type="video/mp4"),
+    ]
+    data["link"] = "https://www.instagram.com/p/abc/"
+    client.post("/report/", data)
+    payload = client.get("/api/v1/issues").json()[0]
+    kinds = sorted(m["kind"] for m in payload["media"])
+    assert kinds == ["image", "video"]
+    assert payload["photos"]  # images only, back-compat
+    assert payload["links"][0]["label"] == "Instagram"
