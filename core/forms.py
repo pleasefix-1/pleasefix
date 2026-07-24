@@ -5,7 +5,11 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.utils.translation import gettext_lazy as _
 
-MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
+from core.models import IssueMedia, media_kind_for_name
+
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB — photos
+MAX_VIDEO_BYTES = 50 * 1024 * 1024  # 50 MB — short clips, not films
+MAX_MEDIA_FILES = 10
 
 
 def validate_photo_size(photo: UploadedFile | None) -> UploadedFile | None:
@@ -14,6 +18,41 @@ def validate_photo_size(photo: UploadedFile | None) -> UploadedFile | None:
     if photo is not None and photo.size is not None and photo.size > MAX_UPLOAD_BYTES:
         raise ValidationError(_("Photo is too large (max 10 MB)."))
     return photo
+
+
+class MultipleFileInput(forms.ClearableFileInput):
+    """The stock ClearableFileInput rejects `multiple`; opt in explicitly."""
+
+    allow_multiple_selected = True
+
+
+class MediaField(forms.FileField):
+    """Accepts several image/video files at once. Each is checked for a
+    recognised media extension and a per-kind size cap; the cleaned value
+    is the list of UploadedFiles (empty when nothing was attached)."""
+
+    widget = MultipleFileInput
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        kwargs.setdefault("required", False)
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data: Any, initial: Any = None) -> list[UploadedFile]:
+        uploads = data if isinstance(data, list | tuple) else [data]
+        uploads = [f for f in uploads if f not in (None, "")]
+        if len(uploads) > MAX_MEDIA_FILES:
+            raise ValidationError(_("Too many files (max %(n)d).") % {"n": MAX_MEDIA_FILES})
+        cleaned: list[UploadedFile] = []
+        for upload in uploads:
+            single = super().clean(upload, initial)
+            kind = media_kind_for_name(getattr(single, "name", "") or "")
+            if kind is None:
+                raise ValidationError(_("Only image or video files can be attached."))
+            cap = MAX_VIDEO_BYTES if kind == IssueMedia.Kind.VIDEO else MAX_UPLOAD_BYTES
+            if single.size is not None and single.size > cap:
+                raise ValidationError(_("%(name)s is too large.") % {"name": single.name})
+            cleaned.append(single)
+        return cleaned
 
 
 class HoneypotMixin(forms.Form):
@@ -62,7 +101,10 @@ class IssueForm(HoneypotMixin, forms.Form):
         max_value=180,
         widget=forms.NumberInput(attrs={"step": "any"}),
     )
-    photo = forms.ImageField(label=_("Photo"), required=False)
+    attachments = MediaField(
+        label=_("Photos or videos"),
+        widget=MultipleFileInput(attrs={"multiple": True, "accept": "image/*,video/*"}),
+    )
     reporter_name = forms.CharField(
         label=_("Your name (optional, shown publicly)"), max_length=100, required=False
     )

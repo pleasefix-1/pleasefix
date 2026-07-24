@@ -105,7 +105,7 @@ docker compose exec app python manage.py seed_sample_data   # a couple of demo i
     <dt><code>core/models.py</code></dt><dd>the domain: Issue, IssueUpdate, Flag, routing (Area/Body/Category), Filing, dependencies, tags — see <code>docs/DESIGN.md</code> §10.</dd>
     <dt><code>core/views.py</code> + <code>templates/</code></dt><dd>the server-rendered pages (report, browse, detail).</dd>
     <dt><code>api/v1.py</code></dt><dd>the public django-ninja API; schema is a reviewed artifact (<code>api/openapi.json</code>).</dd>
-    <dt><code>core/importers.py</code></dt><dd>import an issue from a social/web link (Reddit, X, OpenGraph).</dd>
+    <dt><code>core/importers.py</code></dt><dd>import an issue from a social/web link (Reddit, Instagram, X, OpenGraph).</dd>
     <dt><code>core/abuse.py</code> + <code>docs/ABUSE.md</code></dt><dd>login-free anti-abuse: honeypot, throttles, flags.</dd>
     <dt><code>docs/DESIGN.md</code>, <code>docs/WHY.md</code></dt><dd>architecture, decisions, and the motivation.</dd>
   </dl>

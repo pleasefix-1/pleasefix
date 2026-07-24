@@ -8,8 +8,8 @@
   <meta property="og:title" content="{{ issue.title }} ({{ issue.reference_code }})">
   <meta property="og:description" content="{{ issue.description|truncatewords:40 }}">
   <meta property="og:url" content="{{ share_url }}">
-  {% with issue.photos.first as photo %}{% if photo %}
-  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ photo.image.url }}">
+  {% with photo=issue.first_image %}{% if photo %}
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ photo.file.url }}">
   <meta name="twitter:card" content="summary_large_image">
   {% else %}
   <meta name="twitter:card" content="summary">
@@ -46,9 +46,6 @@
     {% if issue.reporter_name %}
       · {% blocktranslate with name=issue.reporter_name %}by {{ name }}{% endblocktranslate %}
     {% endif %}
-    {% if issue.source_url %}
-      · <a href="{{ issue.source_url }}" rel="noopener">{% translate "original post" %}</a>
-    {% endif %}
     {% if issue.is_claimed %}
       · <span class="badge">{% translate "claimed" %}</span>
     {% endif %}
@@ -67,10 +64,24 @@
     </form>
   {% endif %}
   <p>{{ issue.description|linebreaks }}</p>
-  {% if issue.photos.all %}
-    <div class="photos">
-      {% for photo in issue.photos.all %}
-        <a href="{{ photo.image.url }}"><img src="{{ photo.image.url }}" alt=""></a>
+  {% if issue.media.all %}
+    <div class="media">
+      {% for m in issue.media.all %}
+        {% if m.is_video %}
+          <video controls preload="metadata" src="{{ m.file.url }}"></video>
+        {% else %}
+          <a href="{{ m.file.url }}"><img src="{{ m.file.url }}" alt=""></a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% if issue.source_url or issue.references.all %}
+    <div class="links">
+      {% if issue.source_url %}
+        <a href="{{ issue.source_url }}" rel="noopener nofollow">🔗 {% blocktranslate with name=issue.source_label %}View on {{ name }}{% endblocktranslate %}</a>
+      {% endif %}
+      {% for ref in issue.references.all %}
+        <a href="{{ ref.url }}" rel="noopener nofollow">🔗 {{ ref.display_label }}</a>
       {% endfor %}
     </div>
   {% endif %}

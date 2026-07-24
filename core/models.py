@@ -1,10 +1,12 @@
 import hashlib
 import secrets
 from typing import TYPE_CHECKING, ClassVar
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.gis.db import models as gis
 from django.contrib.gis.geos import Point
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models
 from django.urls import reverse
 from django.utils import timezone
@@ -447,6 +449,20 @@ class Issue(Flaggable):
         return self.owner_id is not None
 
     @property
+    def first_image(self) -> "IssueMedia | None":
+        """First image attachment (for the thumbnail / og:image). Iterates
+        the prefetched `media` cache so list pages stay one query."""
+        for media in self.media.all():
+            if media.kind == IssueMedia.Kind.IMAGE:
+                return media
+        return None
+
+    @property
+    def source_label(self) -> str:
+        """Friendly name for the imported source link ("Instagram")."""
+        return friendly_link_label(self.source_url)
+
+    @property
     def flag_threshold(self) -> int:
         """Claimed reports are harder to flag-bomb off the site."""
         return Flag.CLAIMED_HIDE_THRESHOLD if self.is_claimed else Flag.AUTO_HIDE_THRESHOLD
@@ -562,16 +578,101 @@ class Flag(models.Model):
         return f"Flag on {self.issue_id or self.update_id}"
 
 
-class IssuePhoto(models.Model):
-    issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name="photos")
-    image = models.ImageField(_("photo"), upload_to="issues/%Y/%m/")
+MEDIA_IMAGE_EXTENSIONS = frozenset({"jpg", "jpeg", "png", "webp", "gif"})
+MEDIA_VIDEO_EXTENSIONS = frozenset({"mp4", "webm", "mov", "m4v", "ogg"})
+
+
+def media_kind_for_name(name: str) -> str | None:
+    """Map a filename to 'image'/'video' by extension, or None if neither.
+    The single source of truth for what counts as attachable media — the
+    form validator, the importer, and the create view all route through it."""
+    ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
+    if ext in MEDIA_IMAGE_EXTENSIONS:
+        return IssueMedia.Kind.IMAGE
+    if ext in MEDIA_VIDEO_EXTENSIONS:
+        return IssueMedia.Kind.VIDEO
+    return None
+
+
+def validate_media_file(value: object) -> None:
+    """Model-level guard (admin, seed, any non-form save): the stored file
+    must have an image/video extension we recognise. Size is capped in the
+    form, where the UploadedFile is still in hand."""
+    name = getattr(value, "name", "") or ""
+    if media_kind_for_name(name) is None:
+        raise ValidationError(_("Only image or video files can be attached."))
+
+
+class IssueMedia(models.Model):
+    """A photo or video attached to an issue — the dated evidence trail
+    official channels don't keep public. `kind` drives rendering (<img>
+    vs <video>); the copy always lives on our own storage, even when the
+    original came from a social-media import (see core.importers)."""
+
+    class Kind(models.TextChoices):
+        IMAGE = "image", _("Image")
+        VIDEO = "video", _("Video")
+
+    issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name="media")
+    file = models.FileField(_("file"), upload_to="issues/%Y/%m/", validators=[validate_media_file])
+    kind = models.CharField(_("kind"), max_length=5, choices=Kind.choices, default=Kind.IMAGE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["created_at"]
 
     def __str__(self) -> str:
-        return f"Photo for issue {self.issue_id}"
+        return f"{self.get_kind_display()} for issue {self.issue_id}"
+
+    @property
+    def is_video(self) -> bool:
+        return self.kind == self.Kind.VIDEO
+
+
+# Friendly names for the platforms we import from, so a link with no
+# explicit label still reads as "Instagram" rather than a bare hostname.
+KNOWN_LINK_HOSTS = {
+    "instagram.com": "Instagram",
+    "instagr.am": "Instagram",
+    "facebook.com": "Facebook",
+    "fb.com": "Facebook",
+    "twitter.com": "X",
+    "x.com": "X",
+    "threads.net": "Threads",
+    "tiktok.com": "TikTok",
+    "youtube.com": "YouTube",
+    "youtu.be": "YouTube",
+    "reddit.com": "Reddit",
+}
+
+
+def friendly_link_label(url: str) -> str:
+    """A human name for a bare URL — the platform name when we know it
+    (Instagram, X…), otherwise the hostname, otherwise the URL itself."""
+    host = (urlparse(url).hostname or "").lower().removeprefix("www.")
+    return KNOWN_LINK_HOSTS.get(host, host) or url
+
+
+class IssueReference(models.Model):
+    """An external link attached to an issue — the original social-media
+    post, a news article, an agency's public ticket page. Rendered as
+    clickable chips. Distinct from IssueLink, which is an issue↔issue
+    dependency; this points *out* of the platform."""
+
+    issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name="references")
+    url = models.URLField(_("link"))
+    label = models.CharField(_("label"), max_length=80, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.display_label} for issue {self.issue_id}"
+
+    @property
+    def display_label(self) -> str:
+        return self.label or friendly_link_label(self.url)
 
 
 class IssueLink(models.Model):

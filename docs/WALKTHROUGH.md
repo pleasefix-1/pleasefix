@@ -95,7 +95,8 @@ erDiagram
     Category |o--o{ Issue : "routes"
     Area }o--o{ Issue : "snapshot at intake"
     Tag }o--o{ Issue : "advocacy"
-    Issue ||--o{ IssuePhoto : "evidence"
+    Issue ||--o{ IssueMedia : "evidence"
+    Issue ||--o{ IssueReference : "external links"
     Issue ||--o{ IssueUpdate : "conversation"
     Issue ||--o{ Filing : "official filings"
     Body |o--o{ Filing : "receives"
@@ -120,7 +121,8 @@ erDiagram
 | Model | Why it exists |
 |---|---|
 | **Issue** | The community's record, not any agency's ticket. Status is a small closed set in code (open/fixed/closed — invariants run on these) qualified by `closure_reason` and `fixed_source` ("agency says fixed, community says not" is core data). `duplicate_of` is a real FK. `confirmed_at` enables report-first-verify-later. Per-act `anonymous` is display-only (staff still see the name). Intake snapshots `source_channel`, `language`, `address`, covering `areas`. `claim_token_hash`/`owner` implement progressive identity. |
-| **IssuePhoto** | Dated photos are the evidence trail — the accountability instrument official channels don't keep public. |
+| **IssueMedia** | Dated photos **and videos** are the evidence trail — the accountability instrument official channels don't keep public. `kind` drives rendering (image → `<img>`, video → `<video>`); the copy always lives on our own storage, even when the original came from a social-media import. |
+| **IssueReference** | An external link attached to an issue — the original social-media post, a news article, an agency's public ticket page. Rendered as clickable chips. Distinct from `IssueLink` (issue↔issue dependency): this points *out* of the platform. |
 | **IssueUpdate** | The public conversation. `new_status` records the transition an update caused — staff and verified-reporter state changes become public, attributed audit entries. `by_reporter` is verified via the reporter secret or owning account. |
 | **IssueLink** | Blocks/blocked-by between issues. "I can't walk from A to B" is blocked by "no crossing at Y" and "lights out at Z" — each possibly a different agency. Government systems can't represent this; we can. |
 

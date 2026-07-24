@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PleaseFix\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-22 23:01+0800\n"
+"POT-Creation-Date: 2026-07-24 10:48+0800\n"
 "PO-Revision-Date: 2026-07-22 08:45+0800\n"
 "Last-Translator: PleaseFix Maintainers "
 "<pleasefix-1@users.noreply.github.com>\n"
@@ -125,12 +125,24 @@ msgstr ""
 "REDDIT_CLIENT_SECRET — atau salin butiran kiriman ke dalam borang secara "
 "manual."
 
-#: core/importers.py:222
+#: core/importers.py:220
+msgid "That doesn't look like an Instagram post link."
+msgstr "Itu tidak kelihatan seperti pautan kiriman Instagram."
+
+#: core/importers.py:252
+msgid ""
+"Instagram didn't expose a public preview for that post (it may be private or "
+"removed) — please fill in the details yourself."
+msgstr ""
+"Instagram tidak mendedahkan pratonton awam untuk kiriman itu (mungkin "
+"peribadi atau telah dipadam) — sila isi butirannya sendiri."
+
+#: core/importers.py:267
 msgid "X/Twitter previews don't include photos — attach one if you have it."
 msgstr ""
 "Pratonton X/Twitter tidak menyertakan gambar — lampirkan satu jika ada."
 
-#: core/importers.py:237
+#: core/importers.py:282
 msgid ""
 "That page didn't expose a public preview (it may require login) — please "
 "fill in the details yourself."
@@ -138,7 +150,7 @@ msgstr ""
 "Halaman itu tidak mendedahkan pratonton awam (mungkin memerlukan log masuk) "
 "— sila isi butirannya sendiri."
 
-#: core/importers.py:256
+#: core/importers.py:303
 msgid "Could not read that link — try filling the form manually."
 msgstr "Tidak dapat membaca pautan itu — cuba isi borang secara manual."
 
@@ -158,8 +170,8 @@ msgstr "Kawasan pihak berkuasa tempatan"
 msgid "Other"
 msgstr "Lain-lain"
 
-#: core/models.py:82 core/models.py:108 core/models.py:131 core/models.py:171
-#: core/models.py:211 core/models.py:467
+#: core/models.py:82 core/models.py:108 core/models.py:131 core/models.py:184
+#: core/models.py:226 core/models.py:492
 msgid "name"
 msgstr "nama"
 
@@ -187,199 +199,199 @@ msgstr "laman utama"
 msgid "notes"
 msgstr "nota"
 
-#: core/models.py:164
+#: core/models.py:177
 msgid "Confirmed"
 msgstr "Disahkan"
 
-#: core/models.py:167
+#: core/models.py:180
 msgid "Unconfirmed"
 msgstr "Belum disahkan"
 
-#: core/models.py:168
+#: core/models.py:181
 msgid "Inactive"
 msgstr "Tidak aktif"
 
-#: core/models.py:178
+#: core/models.py:191
 msgid "dispatch email override"
 msgstr "e-mel penghantaran ganti"
 
-#: core/models.py:294
+#: core/models.py:309
 msgid "Open"
 msgstr "Terbuka"
 
-#: core/models.py:295
+#: core/models.py:310
 msgid "Fixed"
 msgstr "Selesai"
 
-#: core/models.py:296
+#: core/models.py:311
 msgid "Closed"
 msgstr "Ditutup"
 
-#: core/models.py:299
+#: core/models.py:314
 msgid "No responsible agency"
 msgstr "Tiada agensi bertanggungjawab"
 
-#: core/models.py:300
+#: core/models.py:315
 msgid "Duplicate"
 msgstr "Pendua"
 
-#: core/models.py:301
+#: core/models.py:316
 msgid "Referred elsewhere"
 msgstr "Dirujuk ke tempat lain"
 
-#: core/models.py:302
+#: core/models.py:317
 msgid "Not a valid issue"
 msgstr "Bukan isu yang sah"
 
-#: core/models.py:303
+#: core/models.py:318
 msgid "Won't be fixed"
 msgstr "Tidak akan dibaiki"
 
-#: core/models.py:309
+#: core/models.py:324
 msgid "Reporter"
 msgstr "Pelapor"
 
-#: core/models.py:310
+#: core/models.py:325
 msgid "Community"
 msgstr "Komuniti"
 
-#: core/models.py:311
+#: core/models.py:326
 msgid "Staff"
 msgstr "Kakitangan"
 
-#: core/models.py:312
+#: core/models.py:327
 msgid "Agency"
 msgstr "Agensi"
 
-#: core/models.py:315
+#: core/models.py:330
 msgid "Web form"
 msgstr "Borang web"
 
-#: core/models.py:316
+#: core/models.py:331
 msgid "URL import"
 msgstr "Import URL"
 
-#: core/models.py:317
+#: core/models.py:332
 msgid "Browser import"
 msgstr "Import pelayar"
 
-#: core/models.py:318 templates/base.html:94
+#: core/models.py:333 templates/base.html:94
 msgid "API"
 msgstr "API"
 
-#: core/models.py:319
+#: core/models.py:334
 msgid "Staff-filed"
 msgstr "Difailkan oleh kakitangan"
 
-#: core/models.py:324
+#: core/models.py:339
 msgid "title"
 msgstr "tajuk"
 
-#: core/models.py:325
+#: core/models.py:340
 msgid "description"
 msgstr "keterangan"
 
-#: core/models.py:326
+#: core/models.py:341
 msgid "source link"
 msgstr "pautan sumber"
 
-#: core/models.py:327
+#: core/models.py:342
 msgid "location"
 msgstr "lokasi"
 
-#: core/models.py:329
+#: core/models.py:344
 msgid "status"
 msgstr "status"
 
-#: core/models.py:332
+#: core/models.py:347
 msgid "closure reason"
 msgstr "sebab penutupan"
 
-#: core/models.py:335
+#: core/models.py:350
 msgid "fixed by"
 msgstr "dibaiki oleh"
 
-#: core/models.py:349
+#: core/models.py:364
 msgid "address"
 msgstr "alamat"
 
-#: core/models.py:368
+#: core/models.py:383
 msgid "reporter name"
 msgstr "nama pelapor"
 
-#: core/models.py:466
+#: core/models.py:491
 msgid "update"
 msgstr "kemas kini"
 
-#: core/models.py:472
+#: core/models.py:497
 msgid "new status"
 msgstr "status baharu"
 
-#: core/models.py:476 core/models.py:542
+#: core/models.py:501 core/models.py:567
 msgid "photo"
 msgstr "gambar"
 
-#: core/models.py:591
+#: core/models.py:616
 msgid "Email"
 msgstr "E-mel"
 
-#: core/models.py:592
+#: core/models.py:617
 msgid "SISPAA"
 msgstr "SISPAA"
 
-#: core/models.py:593
+#: core/models.py:618
 msgid "Manual / recorded"
 msgstr "Manual / direkodkan"
 
-#: core/models.py:597
+#: core/models.py:622
 msgid "Recorded"
 msgstr "Direkodkan"
 
-#: core/models.py:600
+#: core/models.py:625
 msgid "Queued"
 msgstr "Dalam giliran"
 
-#: core/models.py:601
+#: core/models.py:626
 msgid "Sent"
 msgstr "Dihantar"
 
-#: core/models.py:602
+#: core/models.py:627
 msgid "Failed"
 msgstr "Gagal"
 
-#: core/models.py:604
+#: core/models.py:629
 msgid "Acknowledged"
 msgstr "Diterima maklum"
 
-#: core/models.py:605
+#: core/models.py:630
 msgid "In progress"
 msgstr "Dalam tindakan"
 
-#: core/models.py:606
+#: core/models.py:631
 msgid "Closed by agency"
 msgstr "Ditutup oleh agensi"
 
-#: core/models.py:613
+#: core/models.py:638
 msgid "filed with"
 msgstr "difailkan dengan"
 
-#: core/models.py:616
+#: core/models.py:641
 msgid "their reference number"
 msgstr "nombor rujukan mereka"
 
-#: core/models.py:617
+#: core/models.py:642
 msgid "their status"
 msgstr "status mereka"
 
-#: core/models.py:620
+#: core/models.py:645
 msgid "note"
 msgstr "nota"
 
-#: core/models.py:658
+#: core/models.py:683
 msgid "One issue"
 msgstr "Satu isu"
 
-#: core/models.py:659
+#: core/models.py:684
 msgid "Reports near a point"
 msgstr "Laporan berhampiran satu titik"
 
@@ -1049,14 +1061,15 @@ msgstr "Import daripada pautan"
 
 #: templates/issues/report_import.html:20
 msgid ""
-"Seen a community problem on Reddit, X, Facebook, or\n"
-"    Threads? Paste the link — we'll pull in whatever the post shares\n"
+"Seen a community problem on Reddit, Instagram, X,\n"
+"    Facebook, or Threads? Paste the link — we'll pull in whatever the post "
+"shares\n"
 "    publicly (title, text, photo), and you add the location and\n"
 "    confirm."
 msgstr ""
-"Ternampak masalah komuniti di Reddit, X, Facebook, atau Threads? Tampal "
-"pautannya — kami akan tarik apa sahaja yang dikongsi kiriman itu secara "
-"terbuka (tajuk, teks, gambar), dan anda tambah lokasi serta sahkan."
+"Ternampak masalah komuniti di Reddit, Instagram, X, Facebook, atau Threads? "
+"Tampal pautannya — kami akan tarik apa sahaja yang dikongsi kiriman itu "
+"secara terbuka (tajuk, teks, gambar), dan anda tambah lokasi serta sahkan."
 
 #: templates/issues/report_import.html:27
 msgid "Continue to the prefilled report form →"
@@ -1110,8 +1123,8 @@ msgstr ""
 "menghantarnya."
 
 #: templates/issues/report_new.html:28
-msgid "Import from a link instead (Reddit, X, Facebook…)"
-msgstr "Atau import daripada pautan (Reddit, X, Facebook…)"
+msgid "Import from a link instead (Reddit, Instagram, X…)"
+msgstr "Atau import daripada pautan (Reddit, Instagram, X…)"
 
 #: templates/issues/report_new.html:32
 #, python-format

@@ -1,9 +1,12 @@
+from typing import Any
 from urllib.parse import quote
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
+from django.core.validators import URLValidator
 from django.db import IntegrityError, connection, transaction
 from django.db.models import Prefetch
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
@@ -14,7 +17,14 @@ from django.views.decorators.http import require_POST
 
 from core import abuse, importers
 from core.forms import ClaimForm, ImportForm, IssueForm, UpdateForm
-from core.models import Flag, Issue, IssuePhoto, IssueUpdate
+from core.models import (
+    Flag,
+    Issue,
+    IssueMedia,
+    IssueReference,
+    IssueUpdate,
+    media_kind_for_name,
+)
 
 # Lazy so it renders in the viewer's language per-request, not once at import.
 THROTTLE_MESSAGE = _("Too many submissions from your connection — please try again later.")
@@ -43,6 +53,52 @@ def site_page(request: HttpRequest, page: str) -> HttpResponse:
     return HttpResponse(path.read_bytes(), content_type="text/html; charset=utf-8")
 
 
+# A report can carry at most this many external links — enough for the
+# source post plus a few corroborating articles, not a link farm.
+MAX_LINKS = 10
+
+
+def _attach_media(issue: Issue, uploads: list[Any], photo_url: str) -> None:
+    """Store the reporter's own attachments (images/videos, already
+    validated by the form). Only when they attached nothing do we fall
+    back to the importer-carried photo URL (SSRF-guarded download)."""
+    created = False
+    for upload in uploads:
+        kind = media_kind_for_name(getattr(upload, "name", "") or "")
+        if kind is None:
+            continue
+        IssueMedia.objects.create(issue=issue, file=upload, kind=kind)
+        created = True
+    if not created and photo_url:
+        downloaded = importers.download_photo(photo_url)
+        if downloaded is not None:
+            name, content = downloaded
+            kind = media_kind_for_name(name) or IssueMedia.Kind.IMAGE
+            IssueMedia.objects.create(issue=issue, file=ContentFile(content, name=name), kind=kind)
+
+
+def _attach_references(issue: Issue, urls: list[str]) -> None:
+    """Store user-supplied external links as reference chips. The imported
+    source_url lives on the Issue itself and is rendered alongside these,
+    so it is not duplicated here. Invalid/duplicate URLs are dropped."""
+    validate = URLValidator(schemes=["http", "https"])
+    seen: set[str] = set()
+    refs: list[IssueReference] = []
+    for raw in urls:
+        url = (raw or "").strip()
+        if not url or url in seen:
+            continue
+        try:
+            validate(url)
+        except ValidationError:
+            continue
+        seen.add(url)
+        refs.append(IssueReference(issue=issue, url=url))
+        if len(refs) >= MAX_LINKS:
+            break
+    IssueReference.objects.bulk_create(refs)
+
+
 def report_new(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = IssueForm(request.POST, request.FILES)
@@ -62,13 +118,8 @@ def report_new(request: HttpRequest) -> HttpResponse:
                 ip_hash=abuse.ip_hash(request),
                 owner=request.user if request.user.is_authenticated else None,
             )
-            if form.cleaned_data["photo"]:
-                IssuePhoto.objects.create(issue=issue, image=form.cleaned_data["photo"])
-            elif form.cleaned_data["photo_url"]:
-                downloaded = importers.download_photo(form.cleaned_data["photo_url"])
-                if downloaded is not None:
-                    name, content = downloaded
-                    IssuePhoto.objects.create(issue=issue, image=ContentFile(content, name=name))
+            _attach_media(issue, form.cleaned_data["attachments"], form.cleaned_data["photo_url"])
+            _attach_references(issue, request.POST.getlist("link"))
             # Shown once on the issue page; never stored raw.
             request.session[f"claim_secret_{issue.public_id}"] = claim_token
             return redirect(issue)
@@ -156,7 +207,7 @@ def report_import(request: HttpRequest) -> HttpResponse:
 
 
 def issue_list(request: HttpRequest) -> HttpResponse:
-    issues = Issue.objects.public().prefetch_related("photos")[:100]
+    issues = Issue.objects.public().prefetch_related("media")[:100]
     return render(request, "issues/list.html", {"issues": issues})
 
 
@@ -181,7 +232,8 @@ def _detail_context(request: HttpRequest, issue: Issue, form: UpdateForm) -> dic
 
 def issue_detail(request: HttpRequest, public_id: str) -> HttpResponse:
     issue = get_object_or_404(
-        Issue.objects.public().prefetch_related("photos", PUBLIC_UPDATES), public_id=public_id
+        Issue.objects.public().prefetch_related("media", "references", PUBLIC_UPDATES),
+        public_id=public_id,
     )
     return render(request, "issues/detail.html", _detail_context(request, issue, UpdateForm()))
 

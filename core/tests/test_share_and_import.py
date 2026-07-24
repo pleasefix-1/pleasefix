@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+import httpx
 import pytest
 from django.contrib.gis.geos import Point
 from django.test import Client
@@ -102,7 +103,64 @@ def test_submitting_imported_form_downloads_photo(
     assert response.status_code == 302
     created = Issue.objects.get(title="Imported pothole")
     assert created.source_url.startswith("https://www.reddit.com/")
-    assert created.photos.count() == 1
+    assert created.media.count() == 1
+
+
+INSTAGRAM_EMBED = """<html><body>
+<img class="EmbeddedMediaImage" sizes="(max-width: 640px) 100vw, 640px"
+     src="https://scontent.cdninstagram.com/v/t51.2885-15/pothole.jpg?ccb=1-7&amp;e=x" />
+<div class="Caption">
+  <a class="CaptionUsername" href="https://www.instagram.com/majlisrakyat">majlisrakyat</a>
+  <br/><br/>Lubang besar di Jalan Ipoh &amp; makin dalam.<br/>
+  Sudah seminggu tiada tindakan.
+  <div class="CaptionComments"><a href="#">View all 12 comments</a></div>
+</div>
+</body></html>"""
+
+
+def test_import_instagram_parses_embed_page(monkeypatch: pytest.MonkeyPatch) -> None:
+    fetched: list[str] = []
+
+    def fake_get(url: str, **kwargs: Any) -> Any:
+        fetched.append(url)
+        return httpx.Response(200, text=INSTAGRAM_EMBED)
+
+    monkeypatch.setattr(importers, "safe_get", fake_get)
+    candidate = importers._import_instagram("https://www.instagram.com/p/Cxyz-12/")
+    assert fetched == ["https://www.instagram.com/p/Cxyz-12/embed/captioned/"]
+    assert candidate.author == "@majlisrakyat"
+    assert candidate.title == "Lubang besar di Jalan Ipoh & makin dalam."
+    assert "Sudah seminggu tiada tindakan." in candidate.description
+    assert "majlisrakyat" not in candidate.description  # handle line stripped
+    assert candidate.photo_url.startswith("https://scontent.cdninstagram.com/")
+    assert candidate.warnings == []
+
+
+def test_import_instagram_reel_uses_reel_embed(monkeypatch: pytest.MonkeyPatch) -> None:
+    fetched: list[str] = []
+
+    def fake_get(url: str, **kwargs: Any) -> Any:
+        fetched.append(url)
+        return httpx.Response(200, text="<html></html>")
+
+    monkeypatch.setattr(importers, "safe_get", fake_get)
+    candidate = importers._import_instagram("https://www.instagram.com/reel/AbC123xYz/")
+    assert fetched == ["https://www.instagram.com/reel/AbC123xYz/embed/captioned/"]
+    assert candidate.warnings  # nothing extracted → tells the reporter to fill in
+
+
+def test_import_instagram_rejects_non_post_link() -> None:
+    with pytest.raises(importers.ImportError_):
+        importers._import_instagram("https://www.instagram.com/majlisrakyat/")
+
+
+def test_fetch_candidate_routes_instagram(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_instagram(url: str) -> importers.ImportCandidate:
+        return importers.ImportCandidate(source_url=url, title="ig")
+
+    monkeypatch.setattr(importers, "_import_instagram", fake_instagram)
+    candidate = importers.fetch_candidate("https://www.instagram.com/p/Cxyz-12/")
+    assert candidate.title == "ig"
 
 
 def test_ssrf_guard_rejects_non_http_scheme() -> None:

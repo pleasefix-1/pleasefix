@@ -7,7 +7,7 @@
   <p class="help">
     {% blocktranslate %}No account needed. The report is public from the
     moment you submit it.{% endblocktranslate %}
-    <a href="{% url 'report_import' %}">{% translate "Import from a link instead (Reddit, X, Facebook…)" %}</a>
+    <a href="{% url 'report_import' %}">{% translate "Import from a link instead (Reddit, Instagram, X…)" %}</a>
   </p>
   {% if form.initial.source_url %}
     <p class="help">
@@ -40,8 +40,25 @@
       spot and copy the two numbers.{% endblocktranslate %}</p>
     </div>
     <div class="field">
-      {{ form.photo.label_tag }}{{ form.photo }}{{ form.photo.errors }}
-      <img id="photo-preview" alt="">
+      {{ form.attachments.label_tag }}
+      <div class="dropzone" id="dropzone">
+        {{ form.attachments }}
+        <p class="help">{% blocktranslate %}Attach several at once. You can
+        also paste (Ctrl+V) or drag &amp; drop images and short videos.{% endblocktranslate %}</p>
+      </div>
+      {{ form.attachments.errors }}
+      <div id="media-preview"></div>
+    </div>
+    <div class="field">
+      <label>{% translate "Related links (optional)" %}</label>
+      <p class="help">{% blocktranslate %}A social-media post, news article,
+      or agency page about this problem — shown as clickable links.{% endblocktranslate %}</p>
+      <div id="links">
+        <div class="linkrow">
+          <input type="url" name="link" placeholder="https://…">
+        </div>
+      </div>
+      <button type="button" id="add-link">+ {% translate "Add another link" %}</button>
     </div>
     <div class="field">
       {{ form.reporter_name.label_tag }}{{ form.reporter_name }}{{ form.reporter_name.errors }}
@@ -67,14 +84,72 @@
       });
     });
   }
-  /* Photo preview before submit. */
-  var photo = document.getElementById("id_photo");
-  var preview = document.getElementById("photo-preview");
-  photo.addEventListener("change", function () {
-    if (photo.files && photo.files[0]) {
-      preview.src = URL.createObjectURL(photo.files[0]);
-      preview.style.display = "block";
+  /* Media: multi-file with preview, plus paste (Ctrl+V) and drag & drop.
+     Pasted/dropped files are merged into the file input via a DataTransfer
+     so a single multipart submit carries everything — no extra request. */
+  var input = document.getElementById("id_attachments");
+  var preview = document.getElementById("media-preview");
+  var dropzone = document.getElementById("dropzone");
+  var store = new DataTransfer();
+
+  function render() {
+    preview.textContent = "";
+    for (var i = 0; i < store.files.length; i++) {
+      var f = store.files[i];
+      var url = URL.createObjectURL(f);
+      var el = f.type.indexOf("video/") === 0
+        ? document.createElement("video")
+        : document.createElement("img");
+      if (el.tagName === "VIDEO") { el.controls = true; el.muted = true; }
+      el.src = url;
+      preview.appendChild(el);
     }
+  }
+
+  function addFiles(files) {
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      if (f.type.indexOf("image/") === 0 || f.type.indexOf("video/") === 0) {
+        store.items.add(f);
+      }
+    }
+    input.files = store.files;
+    render();
+  }
+
+  input.addEventListener("change", function () {
+    store = new DataTransfer();
+    addFiles(input.files);
+  });
+  document.addEventListener("paste", function (e) {
+    if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length) {
+      addFiles(e.clipboardData.files);
+      e.preventDefault();
+    }
+  });
+  ["dragenter", "dragover"].forEach(function (ev) {
+    dropzone.addEventListener(ev, function (e) {
+      e.preventDefault(); dropzone.classList.add("dragover");
+    });
+  });
+  ["dragleave", "drop"].forEach(function (ev) {
+    dropzone.addEventListener(ev, function (e) {
+      e.preventDefault(); dropzone.classList.remove("dragover");
+    });
+  });
+  dropzone.addEventListener("drop", function (e) {
+    if (e.dataTransfer && e.dataTransfer.files) { addFiles(e.dataTransfer.files); }
+  });
+
+  /* Related links: add another empty row on demand. */
+  document.getElementById("add-link").addEventListener("click", function () {
+    var row = document.createElement("div");
+    row.className = "linkrow";
+    var field = document.createElement("input");
+    field.type = "url"; field.name = "link"; field.placeholder = "https://…";
+    row.appendChild(field);
+    document.getElementById("links").appendChild(row);
+    field.focus();
   });
 })();
 </script>
